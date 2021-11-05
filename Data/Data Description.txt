@@ -1,0 +1,9 @@
+Test_Data.dat --> 62 lines of data is correspond to each input test (total of 46500 lines of data)
+Label_Data.dat --> Each line of data is correspond to each input test (total of 750 lines of data - 46500 / 62)
+Bias_hidden.dat --> bias_hidden[1] - bias_hidden[30]
+Bias_output.dat --> bias_output[1] - bias_output[30]
+Weight_hidden.data --> weigth_hidden[1][1] - weigth_hidden[1][62] / weigth_hidden[2][1] - weigth_hidden[2][62] ... (total is a [30][62] matrix)
+Weight_output.data --> weigth_output[1][1] - weigth_output[1][30] / weigth_output[2][1] - weigth_output[2][30] ... (total is a [10][30] matrix)
+
+// The processor will take Test_Data.txt & Test_Label.txt to run the program memory
+// Bias_hidden, Bias_output, Weight_hidden, and Weight_output's data will be copy to each memory module
