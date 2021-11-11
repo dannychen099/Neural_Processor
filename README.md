@@ -10,3 +10,4 @@ register.v -> store and load the memory data of output value of the hidden layer
 weight_mux.v / bias_mux.v / input_mux.v -> multiplexers to select appropriate values based on controller's state.
 data_mem.v / label_mem.v -> load the pre-train data from text file
 PE.v -> Processing Element will take bias and weight's values and compute the data
+ReLU.v -> Each PE will compute the label value. The maximum value between output of all neruons will be selected. ReLU function is considered as an activation function.
