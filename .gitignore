@@ -1,0 +1,7 @@
+# Exclude Cadence Xcelium files
+xrun.history
+xrun.key
+xrun.log
+xcelium.d/
+waves.shm/
+.simvision/
