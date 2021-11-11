@@ -1,3 +1,6 @@
+`timescale 1ns / 1ns
+`include "ReLU.v"
+
 module ReLU_tb();
 
     reg [80 - 1 : 0] in = {8'd2, 8'd1, 8'd7, 8'd20, 8'd17, 8'd13, 8'd15, 8'd6, 8'd7 , 8'd9};

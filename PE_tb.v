@@ -1,7 +1,7 @@
 `timescale 1ns / 1ns
 `include "PE.v"
 
-module neuron_tb();
+module PE_tb();
     reg [62 * 8 - 1 : 0] in, weight;
     reg [7 : 0] bias;
     wire [7 : 0] out;
