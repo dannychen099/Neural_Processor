@@ -1,5 +1,4 @@
 `timescale 1ns / 1ns
-`include "PE.v"
 
 module PE_tb();
     reg [62 * 8 - 1 : 0] in, weight;

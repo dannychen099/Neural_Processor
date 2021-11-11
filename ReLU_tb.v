@@ -1,5 +1,4 @@
 `timescale 1ns / 1ns
-`include "ReLU.v"
 
 module ReLU_tb();
 
