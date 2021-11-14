@@ -13,11 +13,11 @@ module PE(
 
     wire [20 : 0] mac_out;
 
-    /*
-    MAC62 MAC62(
-        // To be finished
+    mac mac(
+        .in(in),
+        .weight(weight),
+        .out(mac_out)
     );
-    */
 
     reg [20 : 0] added;
     always @(bias, mac_out)

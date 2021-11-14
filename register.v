@@ -1,4 +1,4 @@
-module register_8(
+module register(
     in,
     out,
     clk,
