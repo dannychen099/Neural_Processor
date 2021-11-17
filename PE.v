@@ -1,4 +1,5 @@
 `timescale 1ns/1ns
+`include "mac.v"
 
 module PE(
     bias,
@@ -80,5 +81,3 @@ module PE(
    
 
 endmodule
-
-

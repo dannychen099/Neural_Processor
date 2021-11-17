@@ -1,4 +1,8 @@
 `timescale 1ns / 1ns
+`include "controller.v"
+`include "datapath.v"
+`include "data_mem.v"
+`include "label_mem.v"
 
 module neural_processor_tb();
     reg clk, rst;
@@ -11,9 +15,9 @@ module neural_processor_tb();
         clk = 0;
         #15
         rst = 1'b0;
-        repeat(200000)
+        repeat(6010)
             #10 clk = ~clk;
-            #10000
+            #6010
         $stop;
     end
 

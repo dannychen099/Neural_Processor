@@ -5,9 +5,9 @@ module input_mux(
     reg_hid,
     out
 );
-    in input_sel, reg_sel;
-    in [62 * 8 - 1:0] in;
-    in [30 * 8 - 1:0] reg_hid;
+    input input_sel, reg_sel;
+    input [62 * 8 - 1:0] in;
+    input [30 * 8 - 1:0] reg_hid;
 
     output reg[62 * 8 - 1:0] out;
 

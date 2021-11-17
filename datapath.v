@@ -1,4 +1,12 @@
-module Datapath(
+`include "input_mux.v"
+`include "weight_mux.v"
+`include "bias_mux.v"
+`include "PE.v"
+`include "register.v"
+`include "ReLU.v"
+`include "counter.v"
+
+module datapath(
     in,
     input_sel,
     reg_sel,
@@ -128,8 +136,8 @@ module Datapath(
             input_mux input_mux(
                 .input_sel(input_sel),
                 .reg_sel(reg_sel),
-                .inp(in),
-                .reg_hidden(reg_hidden),
+                .in(in),
+                .reg_hid(reg_hidden),
                 .out(input_out_mux[i])
             );
         end
@@ -140,10 +148,10 @@ module Datapath(
         for (i = 0 ; i < 10 ; i = i + 1)
         begin
             weight_mux weight_mux(
-                .a0(weight_hidden[i]),
-                .a1(weight_hidden[i + 10]),
-                .a2(weight_hidden[i + 20]),
-                .a3(weight_output[i]),
+                .weight_hid_i(weight_hidden[i]),
+                .weight_hid_i_10(weight_hidden[i + 10]),
+                .weight_hid_i_20(weight_hidden[i + 20]),
+                .weight_out_i(weight_output[i]),
                 .out(weight_out_mux[i]),
                 .sel(weight_sel)
             );
@@ -155,10 +163,10 @@ module Datapath(
         for (i = 0 ; i < 10 ; i = i + 1)
         begin
             bias_mux bias_mux(
-                .a0(bias_hidden[i]),
-                .a1(bias_hidden[i + 10]),
-                .a2(bias_hidden[i + 20]),
-                .a3(bias_output[i]),
+                .bias_hid_i(bias_hidden[i]),
+                .bias_hid_i_10(bias_hidden[i + 10]),
+                .bias_hid_i_20(bias_hidden[i + 20]),
+                .bias_out_i(bias_output[i]),
                 .out(bias_output_mux[i]),
                 .sel(bias_sel)
             );
@@ -189,7 +197,7 @@ module Datapath(
                 .out(reg_hidden_out[i]),
                 .clk(clk),
                 .rst(rst),
-                .ld(reg_load[i])
+                .load(reg_load[i])
             );
 
             register reg_hid_2(
@@ -197,7 +205,7 @@ module Datapath(
                 .out(reg_hidden_out[i + 10]),
                 .clk(clk),
                 .rst(rst),
-                .ld(reg_load[i + 10])
+                .load(reg_load[i + 10])
             );
 
             register reg_hid_3(
@@ -205,7 +213,7 @@ module Datapath(
                 .out(reg_hidden_out[i + 20]),
                 .clk(clk),
                 .rst(rst),
-                .ld(reg_load[i + 20])
+                .load(reg_load[i + 20])
             );
             
         end
@@ -223,7 +231,7 @@ module Datapath(
     ReLU ReLU(
         .in( {PE_out[9], PE_out[8], PE_out[7], PE_out[6], PE_out[5], PE_out[4], PE_out[3], PE_out[2], PE_out[1], PE_out[0]} ),    
         .enable(reg_sel),
-        .max(prediction) 
+        .max_val(prediction) 
     );
 
 
@@ -243,3 +251,4 @@ module Datapath(
 
     assign eql = (prediction == expected) ? 1'b1 : 1'b0; 
 endmodule
+

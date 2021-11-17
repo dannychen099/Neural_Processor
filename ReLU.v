@@ -72,4 +72,3 @@ module ReLU(
             max_val = 4'b1001;
     end
 endmodule
-

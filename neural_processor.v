@@ -1,3 +1,9 @@
+`timescale 1ns/1ns
+`include "controller.v"
+`include "datapath.v"
+`include "data_mem.v"
+`include "label_mem.v"
+
 module neural_processor(
     clk,
     rst,

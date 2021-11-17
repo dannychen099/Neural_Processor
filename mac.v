@@ -32,10 +32,3 @@ module mac(
     assign out = (pos > neg) ? {1'b0, pos_res} : {1'b1, neg_res};
 
 endmodule
-
-
-
-
-
-
-
