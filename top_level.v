@@ -1,11 +1,186 @@
-`include "input_mux.v"
-`include "weight_mux.v"
-`include "bias_mux.v"
-`include "PE.v"
-`include "register.v"
-`include "ReLU.v"
-`include "counter.v"
+`timescale 1ns/1ns
 
+// Neural Processor Top Level Module
+module neural_processor(
+    clk,
+    rst,
+    done,
+    accuracy
+);
+    input clk, rst;
+    output done;
+    output [9 : 0] accuracy;
+
+    wire eql, mem_read, input_sel, reg_sel, addr_count_enable, ac_count_enable, label_mem_read;
+    wire [1 : 0] weight_sel, bias_sel;
+    wire [30 - 1 : 0] reg_load;
+    wire [9 : 0] addr_count;
+
+    wire [62 * 8 - 1 : 0] in;
+
+    wire [3 : 0] expected;
+    controller controller(
+        .clk(clk),
+        .rst(rst),
+        .eql(eql),
+        .addr_count(addr_count),
+        .mem_read(mem_read),
+        .input_sel(input_sel),
+        .reg_sel(reg_sel),
+        .weight_sel(weight_sel),
+        .bias_sel(bias_sel),
+        .reg_load(reg_load),
+        .addr_count_enable(addr_count_enable),
+        .label_mem_read(label_mem_read),
+        .ac_count_enable(ac_count_enable),
+        .done(done)
+    );
+
+    
+    datapath datapath(  
+        .in(in),
+        .input_sel(input_sel),
+        .reg_sel(reg_sel),
+        .weight_sel(weight_sel),
+        .bias_sel(bias_sel),
+        .clk(clk),
+        .rst(rst),
+        .reg_load(reg_load),
+        .addr_count(addr_count),
+        .addr_count_en(addr_count_enable),
+        .accuracy(accuracy),
+        .acc_count_en(ac_count_enable),
+        .eql(eql),
+        .expected(expected)
+    );
+
+    data_mem data_mem(
+        .addr(addr_count),
+        .mem_read(mem_read),
+        .out(in)
+    );  
+
+    label_mem label_mem(
+        .addr(addr_count),
+        .mem_read(label_mem_read),
+        .out(expected)
+    );   
+
+endmodule
+
+//Controller Module
+module controller(
+    clk,
+    rst,
+    eql,
+    addr_count,
+    mem_read,
+    input_sel,
+    reg_sel,
+    weight_sel,
+    bias_sel,
+    reg_load,
+    addr_count_enable,
+    label_mem_read,
+    ac_count_enable,
+    done
+);
+    input clk,rst;
+    input eql;
+    input [9 : 0] addr_count;
+
+    output reg mem_read;
+    output reg input_sel, reg_sel;
+    output reg [1 : 0] weight_sel, bias_sel;
+    output reg [30 - 1 : 0] reg_load;
+    output reg addr_count_enable, label_mem_read, ac_count_enable;
+    output reg done;
+
+    reg [2 : 0] states_pos, states_neg;
+	
+	always @(posedge clk, posedge rst)
+    begin
+        if (rst)
+            states_pos <= 3'd0;
+        else
+            states_pos <= states_neg;
+    end
+	
+    always @(states_pos, addr_count)
+    begin
+	case(states_pos)
+		3'd0: states_neg = 3'd1;
+		3'd1: states_neg = 3'd2;
+		3'd2: states_neg = 3'd3;
+		3'd3: 
+		begin
+			if(addr_count < 10'd750)
+			states_neg = 3'd0;
+			else
+			states_neg = 3'd4;
+		end
+	endcase
+    end
+
+    always @(states_pos, eql)
+    begin
+        mem_read = 1'b0;
+        input_sel = 1'b0;
+        reg_sel = 1'b0;
+        weight_sel = 2'd0;
+        bias_sel = 2'd0;
+        reg_load = 30'd0;
+        label_mem_read = 1'b0;
+        addr_count_enable = 1'b0;
+        ac_count_enable = 1'b0;
+
+        if (states_pos == 3'd0)
+        begin
+            mem_read = 1'b1;
+            input_sel = 1'b1;
+            weight_sel = 2'd0;
+            bias_sel = 2'd0;
+            reg_load = {20'd0, 10'b11111_11111};
+        end
+
+        if (states_pos == 3'd1)
+        begin
+            mem_read = 1'b1;
+            input_sel = 1'b1;
+            weight_sel = 2'd1;
+            bias_sel = 2'd1;
+            reg_load = {10'd0, 10'b11111_11111, 10'd0};
+        end
+
+        if (states_pos == 3'd2)
+        begin
+            mem_read = 1'b1;
+            input_sel = 1'b1;
+            weight_sel = 2'd2;
+            bias_sel = 2'd2;
+            reg_load = {10'b11111_11111, 20'd0};
+        end
+
+        if (states_pos == 3'd3)
+        begin
+            reg_sel = 1'b1;
+            weight_sel = 2'd3;
+            bias_sel = 2'd3;
+            label_mem_read = 1'b1;
+            addr_count_enable = 1'b1;
+            ac_count_enable = eql;
+        end
+
+        if (states_pos == 3'd4)
+        begin
+            done = 1'b1;
+        end
+
+    end
+
+endmodule
+
+// Datapath Module
 module datapath(
     in,
     input_sel,
@@ -226,7 +401,6 @@ module datapath(
     reg_hidden_out[9], reg_hidden_out[8], reg_hidden_out[7], reg_hidden_out[6], reg_hidden_out[5], reg_hidden_out[4], 
     reg_hidden_out[3], reg_hidden_out[2], reg_hidden_out[1], reg_hidden_out[0]};
 
-
     wire [3 : 0] prediction;
     ReLU ReLU(
         .in( {PE_out[9], PE_out[8], PE_out[7], PE_out[6], PE_out[5], PE_out[4], PE_out[3], PE_out[2], PE_out[1], PE_out[0]} ),    
@@ -235,14 +409,14 @@ module datapath(
     );
 
 
-    counter Addr_counter(
+    counter addr_counter_1(
         .clk(clk),
         .rst(rst),
         .cnt(addr_count),
         .cnten(addr_count_en)
     );
 
-    counter Acc_counter(
+    counter addr_counter_2(
         .clk(clk),
         .rst(rst),
         .cnt(accuracy),
@@ -252,146 +426,79 @@ module datapath(
     assign eql = (prediction == expected) ? 1'b1 : 1'b0; 
 endmodule
 
-// PE Module
-module PE(
-    bias,
-    weight,
+// Input Mux Module
+module input_mux(
+    input_sel,
+    reg_sel,
     in,
+    reg_hid,
     out
 );
-    input [7 : 0] bias;
-    input [62 * 8 - 1 : 0] weight;
-    input [62 * 8 - 1 : 0] in;
-    output [7 : 0] out;
+    input input_sel, reg_sel;
+    input [62 * 8 - 1:0] in;
+    input [30 * 8 - 1:0] reg_hid;
 
-    wire [20 : 0] mac_out;
+    output reg[62 * 8 - 1:0] out;
 
-    mac mac(
-        .in(in),
-        .weight(weight),
-        .out(mac_out)
-    );
-
-    reg [20 : 0] added;
-    always @(bias, mac_out)
+    always @(*)
     begin
-        if (bias[7] == 1'b1 && mac_out[20] == 1'b1)
-        begin
-            added = {1'b1, bias[6 : 0] * 7'd127 + mac_out[19 : 0]};
-        end
-        if (bias[7] == 1'b1 && mac_out[20] == 1'b0)
-        begin
-            if (mac_out[19 : 0] > bias[6 : 0]* 7'd127)
-              begin
-                added = {1'b0, mac_out[19 : 0] - bias[6 : 0] * 7'd127};
-              end
-            else 
-            begin
-                added = {1'b1, bias[6 : 0] * 7'd127 - mac_out[19 : 0]};
-              end
-        end
-
-
-        if (bias[7] == 1'b0 && mac_out[20] == 1'b1)    
-        begin
-            if (mac_out[19 : 0] > bias[6 : 0]* 7'd127) 
-            begin
-                added = {1'b1, mac_out[19 : 0] - bias[6 : 0] * 7'd127}; 
-            end
-            else 
-            begin
-                added = {1'b0, bias[6 : 0] * 7'd127 - mac_out[19 : 0]};
-            end
-        end
-
-        if (bias[7] == 1'b0 && mac_out[20] == 1'b0)
-        begin
-            added = {1'b0,  mac_out[19 : 0] + bias[6 : 0] * 7'd127};
-        end
-    end 
-
-
-    wire [20 : 0] added_sh;
-    assign added_sh = {added[20], 9'b0, added[19 : 9]};
-
-
-    reg [20 : 0] relu_out;
-
-    always @(added_sh)
-    begin
-        if (added_sh[20] == 1'b0)
-        begin
-            relu_out = added_sh;
-        end
-        else    
-        begin
-            relu_out = 21'd0;
-        end
-    end
-    
-    assign out = (relu_out > 21'd127) ? {1'b0, 7'b1111111} : {1'b0, relu_out[6 : 0]};
-   
-
-endmodule
-
-// Mac Module
-module mac(
-    in,
-    weight,
-    out
-);
-    input [62 * 8 - 1 : 0] in, weight;
-    output [20 : 0] out;  
-    reg [20 : 0] neg ;
-    reg [20 : 0] pos ;
-	integer i;
-	always @(in, weight) begin
-		neg = 21'b0;
-        pos = 21'b0;
-		for (i = 0 ; i < 62 ; i = i + 1)
-		begin
-			if (in[8 * i + 7] ^ weight[8 * i + 7] == 1'b1) //negative
-            begin
-				neg = neg + in[8 * i +: 7] * weight[8 * i +: 7];
-            end
-			else
-            begin
-				pos = pos + in[8 * i +: 7] * weight[8 * i +: 7];  
-            end
-		end
-	end
-
-    wire [19 : 0] pos_res, neg_res;
-    assign pos_res = pos - neg;
-    assign neg_res = neg - pos;
-    assign out = (pos > neg) ? {1'b0, pos_res} : {1'b1, neg_res};
-
-endmodule
-
-// Register Module
-module register(
-    in,
-    out,
-    clk,
-    rst,
-    load
-);
-    input [7 : 0] in;
-    output reg [7 : 0] out;
-    input clk, rst;
-    input load;
-
-    always @(posedge clk, posedge rst) begin
-        if (rst)
-            out <= 8'b0000_0000;
+        if (input_sel)
+            out = in;
         else
-            if (load)
-                out <= in;
+        if (reg_sel)
+            out = {256'b0 ,reg_hid};
+        else
+            out = 496'bZ;
     end
 
 endmodule
 
-// ReLU Module 
+// Weight Mux Module
+module weight_mux(
+    weight_hid_i,
+    weight_hid_i_10,
+    weight_hid_i_20,
+    weight_out_i,
+    out,
+    sel
+);
+    input [62 * 8 - 1: 0] weight_hid_i, weight_hid_i_10, weight_hid_i_20;
+    input [240 - 1 : 0] weight_out_i;
+    input [1 : 0] sel;
+
+    output [62 * 8 - 1 : 0] out;
+
+    assign out =    sel == 2'b00 ? weight_hid_i :
+                    sel == 2'b01 ? weight_hid_i_10 :
+                    sel == 2'b10 ? weight_hid_i_20 :
+                    sel == 2'b11 ? {256'b0 , weight_out_i} :
+                    496'bZ;    
+
+endmodule
+
+// Bias Mux Module
+module bias_mux(
+    bias_hid_i,
+    bias_hid_i_10,
+    bias_hid_i_20,
+    bias_out_i,
+    out,
+    sel
+);
+    input [8 - 1: 0] bias_hid_i, bias_hid_i_10, bias_hid_i_20, bias_out_i;
+    input [1 : 0] sel;
+
+    output [8 - 1 : 0] out;
+
+    assign out =    sel == 2'b00 ? bias_hid_i :
+                    sel == 2'b01 ? bias_hid_i_10 :
+                    sel == 2'b10 ? bias_hid_i_20 :
+                    sel == 2'b11 ? bias_out_i :
+                    8'bZ;    
+
+endmodule
+
+// ReLU Module
 module ReLU(
     in,    
     enable,
@@ -538,3 +645,142 @@ module label_mem(
     end
 
 endmodule   
+
+// Processing Element Module
+module PE(
+    bias,
+    weight,
+    in,
+    out
+);
+    input [7 : 0] bias;
+    input [62 * 8 - 1 : 0] weight;
+    input [62 * 8 - 1 : 0] in;
+    output [7 : 0] out;
+
+    wire [20 : 0] mac_out;
+
+    mac mac(
+        .in(in),
+        .weight(weight),
+        .out(mac_out)
+    );
+
+    reg [20 : 0] added;
+    always @(bias, mac_out)
+    begin
+        if (bias[7] == 1'b1 && mac_out[20] == 1'b1)
+        begin
+            added = {1'b1, bias[6 : 0] * 7'd127 + mac_out[19 : 0]};
+        end
+        if (bias[7] == 1'b1 && mac_out[20] == 1'b0)
+        begin
+            if (mac_out[19 : 0] > bias[6 : 0]* 7'd127)
+              begin
+                added = {1'b0, mac_out[19 : 0] - bias[6 : 0] * 7'd127};
+              end
+            else 
+            begin
+                added = {1'b1, bias[6 : 0] * 7'd127 - mac_out[19 : 0]};
+              end
+        end
+
+
+        if (bias[7] == 1'b0 && mac_out[20] == 1'b1)    
+        begin
+            if (mac_out[19 : 0] > bias[6 : 0]* 7'd127) 
+            begin
+                added = {1'b1, mac_out[19 : 0] - bias[6 : 0] * 7'd127}; 
+            end
+            else 
+            begin
+                added = {1'b0, bias[6 : 0] * 7'd127 - mac_out[19 : 0]};
+            end
+        end
+
+        if (bias[7] == 1'b0 && mac_out[20] == 1'b0)
+        begin
+            added = {1'b0,  mac_out[19 : 0] + bias[6 : 0] * 7'd127};
+        end
+    end 
+
+
+    wire [20 : 0] added_sh;
+    assign added_sh = {added[20], 9'b0, added[19 : 9]};
+
+
+    reg [20 : 0] relu_out;
+
+    always @(added_sh)
+    begin
+        if (added_sh[20] == 1'b0)
+        begin
+            relu_out = added_sh;
+        end
+        else    
+        begin
+            relu_out = 21'd0;
+        end
+    end
+    
+    assign out = (relu_out > 21'd127) ? {1'b0, 7'b1111111} : {1'b0, relu_out[6 : 0]};
+   
+
+endmodule
+
+// Register Module
+module register(
+    in,
+    out,
+    clk,
+    rst,
+    load
+);
+    input [7 : 0] in;
+    output reg [7 : 0] out;
+    input clk, rst;
+    input load;
+
+    always @(posedge clk, posedge rst) begin
+        if (rst)
+            out <= 8'b0000_0000;
+        else
+            if (load)
+                out <= in;
+    end
+
+endmodule
+
+// Mac Module
+module mac(
+    in,
+    weight,
+    out
+);
+    input [62 * 8 - 1 : 0] in, weight;
+    output [20 : 0] out;  
+    reg [20 : 0] neg ;
+    reg [20 : 0] pos ;
+	integer i;
+	always @(in, weight) begin
+		neg = 21'b0;
+        pos = 21'b0;
+		for (i = 0 ; i < 62 ; i = i + 1)
+		begin
+			if (in[8 * i + 7] ^ weight[8 * i + 7] == 1'b1) //negative
+            begin
+				neg = neg + in[8 * i +: 7] * weight[8 * i +: 7];
+            end
+			else
+            begin
+				pos = pos + in[8 * i +: 7] * weight[8 * i +: 7];  
+            end
+		end
+	end
+
+    wire [19 : 0] pos_res, neg_res;
+    assign pos_res = pos - neg;
+    assign neg_res = neg - pos;
+    assign out = (pos > neg) ? {1'b0, pos_res} : {1'b1, neg_res};
+
+endmodule

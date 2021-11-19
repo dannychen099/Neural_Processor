@@ -1,0 +1,196 @@
+Ignoring AAE DB Resetting ...
+**WARN: (IMPEXT-3518):	The lower process node is set (using command 'setDesignMode') but the technology file for tQuantus extraction not specified. Therefore, going for postRoute (effortLevel low) extraction instead of recommended extractor 'tQuantus' for lower nodes. Use command 'set_analysis_view/update_rc_corner' to specify the technology file for tQuantus extraction to take place.
+Extraction called for design 'neural_processor' of instances=303376 and nets=140492 using extraction engine 'postRoute' at effort level 'low' .
+PostRoute (effortLevel low) RC Extraction called for design neural_processor.
+RC Extraction called in multi-corner(1) mode.
+**WARN: (IMPEXT-6197):	The Cap table file is not specified. This will result in lower parasitic accuracy when using preRoute extraction or postRoute extraction with effort level 'low'. It is recommended to generate the Cap table file using the 'generateCapTbl' command and specify it before extraction using 'create_rc_corner/update_rc_corner -cap_table'.
+Type 'man IMPEXT-6197' for more detail.
+**WARN: (IMPEXT-3032):	Because the cap table file was not provided, it will be created internally with the following process info:
+* Layer Id             : 1 - M1
+      Thickness        : 0.13
+      Min Width        : 0.07
+      Layer Dielectric : 4.1
+* Layer Id             : 2 - M2
+      Thickness        : 0.14
+      Min Width        : 0.07
+      Layer Dielectric : 4.1
+* Layer Id             : 3 - M3
+      Thickness        : 0.14
+      Min Width        : 0.07
+      Layer Dielectric : 4.1
+* Layer Id             : 4 - M4
+      Thickness        : 0.28
+      Min Width        : 0.14
+      Layer Dielectric : 4.1
+* Layer Id             : 5 - M5
+      Thickness        : 0.28
+      Min Width        : 0.14
+      Layer Dielectric : 4.1
+* Layer Id             : 6 - M6
+      Thickness        : 0.28
+      Min Width        : 0.14
+      Layer Dielectric : 4.1
+* Layer Id             : 7 - M7
+      Thickness        : 0.8
+      Min Width        : 0.4
+      Layer Dielectric : 4.1
+* Layer Id             : 8 - M8
+      Thickness        : 0.8
+      Min Width        : 0.4
+      Layer Dielectric : 4.1
+* Layer Id             : 9 - M9
+      Thickness        : 2
+      Min Width        : 0.8
+      Layer Dielectric : 4.1
+* Layer Id             : 10 - M10
+      Thickness        : 2
+      Min Width        : 0.8
+      Layer Dielectric : 4.1
+extractDetailRC Option : -outfile /tmp/innovus_temp_2108680_batman.ece.northwestern.edu_ycx6277_QTHQTG/neural_processor_2108680_lEajCI.rcdb.d -maxResLength 200  -basic
+RC Mode: PostRoute -effortLevel low [Basic CapTable, LEF Resistances]
+      RC Corner Indexes            0   
+Capacitance Scaling Factor   : 1.00000 
+Coupling Cap. Scaling Factor : 1.00000 
+Resistance Scaling Factor    : 1.00000 
+Clock Cap. Scaling Factor    : 1.00000 
+Clock Res. Scaling Factor    : 1.00000 
+Shrink Factor                : 1.00000
+Initializing multi-corner resistance tables ...
+Checking LVS Completed (CPU Time= 0:00:00.3  MEM= 2802.5M)
+Extracted 10.0001% (CPU Time= 0:00:01.8  MEM= 2858.5M)
+Extracted 20.0001% (CPU Time= 0:00:03.6  MEM= 2858.5M)
+Extracted 30.0001% (CPU Time= 0:00:05.9  MEM= 2858.5M)
+Extracted 40.0001% (CPU Time= 0:00:06.2  MEM= 2858.5M)
+Extracted 50.0001% (CPU Time= 0:00:08.1  MEM= 2858.5M)
+Extracted 60.0001% (CPU Time= 0:00:09.6  MEM= 2858.5M)
+Extracted 70.0001% (CPU Time= 0:00:11.5  MEM= 2858.5M)
+Extracted 80.0001% (CPU Time= 0:00:15.1  MEM= 2858.5M)
+Extracted 90.0001% (CPU Time= 0:00:16.3  MEM= 2858.5M)
+Extracted 100% (CPU Time= 0:00:18.2  MEM= 2858.5M)
+Number of Extracted Resistors     : 2400286
+Number of Extracted Ground Cap.   : 2537056
+Number of Extracted Coupling Cap. : 5048936
+Filtering XCap in 'relativeAndCoupling' mode using values coupling_c_threshold=0.1fF, relative_c_threshold=1, and total_c_threshold=0fF.
+Checking LVS Completed (CPU Time= 0:00:00.4  MEM= 2834.5M)
+PostRoute (effortLevel low) RC Extraction DONE (CPU Time: 0:00:21.8  Real Time: 0:00:22.0  MEM: 2834.461M)
+Starting SI iteration 1 using Infinite Timing Windows
+#################################################################################
+# Design Stage: PostRoute
+# Design Name: neural_processor
+# Design Mode: 45nm
+# Analysis Mode: MMMC OCV 
+# Parasitics Mode: SPEF/RCDB
+# Signoff Settings: SI On 
+#################################################################################
+AAE_INFO: 1 threads acquired from CTE.
+Calculate early delays in OCV mode...
+Calculate late delays in OCV mode...
+Initializing multi-corner resistance tables ...
+AAE_INFO: 1 threads acquired from CTE.
+Total number of fetched objects 138858
+AAE_INFO: Total number of nets for which stage creation was skipped for all views 0
+AAE_INFO-618: Total number of nets in the design is 140492,  98.8 percent of the nets selected for SI analysis
+End delay calculation. (MEM=2850.14 CPU=0:00:35.0 REAL=0:00:35.0)
+Loading CTE timing window with TwFlowType 0...(CPU = 0:00:00.0, REAL = 0:00:00.0, MEM = 2850.1M)
+Add other clocks and setupCteToAAEClockMapping during iter 1
+Loading CTE timing window is completed (CPU = 0:00:00.2, REAL = 0:00:00.0, MEM = 2850.1M)
+Starting SI iteration 2
+AAE_INFO: 1 threads acquired from CTE.
+Calculate early delays in OCV mode...
+Calculate late delays in OCV mode...
+Glitch Analysis: View an -- Total Number of Nets Skipped = 0. 
+Glitch Analysis: View an -- Total Number of Nets Analyzed = 138858. 
+Total number of fetched objects 138858
+AAE_INFO: Total number of nets for which stage creation was skipped for all views 0
+AAE_INFO-618: Total number of nets in the design is 140492,  41.2 percent of the nets selected for SI analysis
+End delay calculation. (MEM=2826.19 CPU=0:00:36.1 REAL=0:00:37.0)
+**WARN: (IMPEXT-3493):	The design extraction status has been reset by set_analysis_view/update_rc_corner or setExtractRCMode  command. The parasitic data can be regenerated either by extracting the design using the extractRC command or by loading the SPEF or RCDB file(s). To prevent resetting of the extraction status, avoid changing extraction modes.
+Type 'man IMPEXT-3493' for more detail.
+Start to check current routing status for nets...
+All nets are already routed correctly.
+End to check current routing status for nets (mem=2711.8M)
+Extraction called for design 'neural_processor' of instances=303376 and nets=140492 using extraction engine 'preRoute' .
+PreRoute RC Extraction called for design neural_processor.
+RC Extraction called in multi-corner(1) mode.
+**WARN: (IMPEXT-6197):	The Cap table file is not specified. This will result in lower parasitic accuracy when using preRoute extraction or postRoute extraction with effort level 'low'. It is recommended to generate the Cap table file using the 'generateCapTbl' command and specify it before extraction using 'create_rc_corner/update_rc_corner -cap_table'.
+Type 'man IMPEXT-6197' for more detail.
+RCMode: PreRoute
+      RC Corner Indexes            0   
+Capacitance Scaling Factor   : 1.00000 
+Resistance Scaling Factor    : 1.00000 
+Clock Cap. Scaling Factor    : 1.00000 
+Clock Res. Scaling Factor    : 1.00000 
+Shrink Factor                : 1.00000
+PreRoute extraction is honoring NDR/Shielding/ExtraSpace for clock nets.
+Updating RC grid for preRoute extraction ...
+Initializing multi-corner resistance tables ...
+PreRoute RC Extraction DONE (CPU Time: 0:00:00.8  Real Time: 0:00:01.0  MEM: 2711.785M)
+Starting SI iteration 1 using Infinite Timing Windows
+#################################################################################
+# Design Stage: PostRoute
+# Design Name: neural_processor
+# Design Mode: 45nm
+# Analysis Mode: MMMC OCV 
+# Parasitics Mode: No SPEF/RCDB
+# Signoff Settings: SI On 
+#################################################################################
+AAE_INFO: 1 threads acquired from CTE.
+Calculate early delays in OCV mode...
+Calculate late delays in OCV mode...
+**WARN: (IMPESI-2017):	There is no coupling capacitance found in the design. Use setDelayCalMode -siAware false to perform base delay analysis. SI analysis requires the parasitics database to contain coupling capacitance. To perform SI analysis, use 'setExtractRCMode -coupled true' prior to extraction or load a SPEF with coupling capacitance and re-run. If the design is small and does not have any coupling, this message can be ignored.
+Total number of fetched objects 138858
+AAE_INFO: Total number of nets for which stage creation was skipped for all views 0
+AAE_INFO-618: Total number of nets in the design is 140492,  98.8 percent of the nets selected for SI analysis
+End delay calculation. (MEM=2807.79 CPU=0:00:20.3 REAL=0:00:21.0)
+Loading CTE timing window with TwFlowType 0...(CPU = 0:00:00.0, REAL = 0:00:00.0, MEM = 2807.8M)
+Add other clocks and setupCteToAAEClockMapping during iter 1
+Loading CTE timing window is completed (CPU = 0:00:00.2, REAL = 0:00:00.0, MEM = 2807.8M)
+Starting SI iteration 2
+AAE_INFO: 1 threads acquired from CTE.
+Calculate early delays in OCV mode...
+Calculate late delays in OCV mode...
+**WARN: (IMPESI-2017):	There is no coupling capacitance found in the design. Use setDelayCalMode -siAware false to perform base delay analysis. SI analysis requires the parasitics database to contain coupling capacitance. To perform SI analysis, use 'setExtractRCMode -coupled true' prior to extraction or load a SPEF with coupling capacitance and re-run. If the design is small and does not have any coupling, this message can be ignored.
+Glitch Analysis: View an -- Total Number of Nets Skipped = 0. 
+Glitch Analysis: View an -- Total Number of Nets Analyzed = 138858. 
+Total number of fetched objects 138858
+AAE_INFO: Total number of nets for which stage creation was skipped for all views 0
+AAE_INFO-618: Total number of nets in the design is 140492,  0.0 percent of the nets selected for SI analysis
+End delay calculation. (MEM=2783.83 CPU=0:00:00.4 REAL=0:00:01.0)
+*** Done Building Timing Graph (cpu=0:00:26.4 real=0:00:27.0 totSessionCpu=0:48:16 mem=2783.8M)
+
+------------------------------------------------------------
+          timeDesign Summary                             
+------------------------------------------------------------
+
+Setup views included:
+ an 
+
++--------------------+---------+---------+---------+
+|     Setup mode     |   all   | reg2reg | default |
++--------------------+---------+---------+---------+
+|           WNS (ns):|  0.000  |   N/A   |  0.000  |
+|           TNS (ns):|  0.000  |   N/A   |  0.000  |
+|    Violating Paths:|    0    |   N/A   |    0    |
+|          All Paths:|    0    |   N/A   |    0    |
++--------------------+---------+---------+---------+
+
++----------------+-------------------------------+------------------+
+|                |              Real             |       Total      |
+|    DRVs        +------------------+------------+------------------|
+|                |  Nr nets(terms)  | Worst Vio  |  Nr nets(terms)  |
++----------------+------------------+------------+------------------+
+|   max_cap      |      3 (3)       |   -0.006   |      3 (3)       |
+|   max_tran     |    783 (2696)    |   -0.093   |    783 (2696)    |
+|   max_fanout   |      0 (0)       |     0      |      0 (0)       |
+|   max_length   |      0 (0)       |     0      |      0 (0)       |
++----------------+------------------+------------+------------------+
+
+Density: 100.000%
+Routing Overflow: 0.00% H and 0.04% V
+Total number of glitch violations: 1
+------------------------------------------------------------
+Reported timing to dir timingReports
+Total CPU time: 135.25 sec
+Total Real time: 135.0 sec
+Total Memory Usage: 2711.871094 Mbytes
+Reset AAE Options
