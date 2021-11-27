@@ -52,14 +52,16 @@ E = (H - R + U)/U;  % Output Feature Map (ofmap) Height
 F = (W - S + U)/U;  % Output Feature Map (ofmap) Width
 
 % Dimensions of PE array
-arrayRows = 5;
-arrayColumns = 32;
+arrayRows = 10;
+arrayColumns = 10;
 
 % Create dummy data for testing
 filterArray = rand(R,S);
 ifmapArray = rand(H,W);
 ofmapArray = zeros(E,F);
-spad = zeros(arrayRows, arrayColumns);
+
+
+% TODO: wrap ifmap to fit size of PE array
 
 %% Calculate what we should get after 2D convolution. This is our baseline.
 expectedOutput = imfilter(ifmapArray, filterArray);
