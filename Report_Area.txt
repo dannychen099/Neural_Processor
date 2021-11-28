@@ -1,8 +1,0 @@
-Depth  Name                        #Inst  Area (um^2)
------------------------------------------------------
-0      neural_processor            100625 231269.444 
-1      datapath                    100062 230640.62  
-2      {datapath/genblk4[3].PE}    9290   21682.99   
-2      {datapath/genblk4[2].PE}    8729   21011.074  
-2      {datapath/genblk4[8].PE}    8597   20653.57   
-1
