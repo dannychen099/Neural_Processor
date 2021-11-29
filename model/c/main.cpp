@@ -1,92 +1,90 @@
-// eyeriss_module_test.cpp : 이 파일에는 'main' 함수가 포함됩니다. 거기서 프로그램 실행이 시작되고 종료됩니다.
-//
-
-
 #include <iostream>
 #include <vector>
 #include "pe.h"
-#include "utils.h"
 
-#define PE_ARRAY_ROW 3
-#define PE_ARRAY_COL 3
-#define FILTER_SIZE 3
-#define IFMAP_SIZE 5
-#define CHANNEL 1
+#define PE_ARRAY_WIDTH  10
+#define PE_ARRAY_HEIGHT 5
+#define FILTER_WIDTH    3
+#define FILTER_HEIGHT   3
+#define IFMAP_WIDTH     5
+#define IFMAP_HEIGHT    5
+#define STRIDE          1
+#define OFMAP_WIDTH     (IFMAP_WIDTH - FILTER_WIDTH + STRIDE)/STRIDE
+#define OFMAP_HEIGHT    (IFMAP_HEIGHT - FILTER_HEIGHT + STRIDE)/STRIDE
+#define CHANNEL         1
 
 using namespace std;
 
+// Local memory banks
+int filter[FILTER_WIDTH][FILTER_HEIGHT];
+int ifmap[IFMAP_WIDTH][IFMAP_HEIGHT];
 
-typedef vector<PE> PE_1D;
+double filterRow[FILTER_WIDTH];
+int ifmapRow[IFMAP_WIDTH];
+int ofmapRow[OFMAP_WIDTH];
+double zero = 0;
+
+typedef vector<PE_unit> PE_1D;
 typedef vector<PE_1D> PE_2D;
-
 
 int main()
 {
-	double dram_data;
+    PE_2D PE_array;
+    PE_array.resize(PE_ARRAY_HEIGHT);
 
-	PE_2D PE_array;
-	PE_array.resize(PE_ARRAY_ROW);
+    for (int col = 0; col < PE_ARRAY_HEIGHT; col++) {
+        PE_array[col].resize(PE_ARRAY_WIDTH);
+    }
 
-	for (int i = 0; i < PE_ARRAY_ROW; i++) {
-		PE_array[i].resize(PE_ARRAY_COL);
-	}
+    printf("%d,%d", PE_array.size(), PE_array[0].size());
 
-	for (int i = 0; i < PE_ARRAY_ROW; i++) {
-		for (int j = 0; j < PE_ARRAY_COL; j++) {
-			PE_array[i][j].dram_value = &dram_data;
-		}
-	}
+	printf("\n----- Set PE_array Filter ID -----\n");
+    for (int pe_y = 0; pe_y < PE_ARRAY_HEIGHT; pe_y++) {
+        for (int pe_x = 0; pe_x < PE_ARRAY_WIDTH; pe_x++) {
+            PE_array[pe_y][pe_x].set_filter_id(&zero); 
+            //printf("%X ", PE_array[pe_y][pe_x].filter_id);
+        }
+        //printf("\n");
+    }
 
-	cout << PE_array.size() << endl;
-	cout << PE_array[0].size() << endl;
+    // Over each PE row...
+    for (int pe_y = 0; pe_y < FILTER_WIDTH; pe_y++) {
+        // Over each PE column...
+        for (int pe_x = 0; pe_x < OFMAP_WIDTH; pe_x++) {
+            /* Set the filter ID in each PE row to the same value.
+                For filter with width N:
+                1 1 1 ... 1
+                2 2 2 ... 2
+                  .   .
+                  .    .
+                  .     .
+                N N N ... N
+                
+               Filter IDs are the same across each PE row.
+            */
+            PE_array[pe_y][pe_x].set_filter_id(&filterRow[pe_y]);
+            //printf("%X ", PE_array[pe_y][pe_x].filter_id);
+        }
+        //printf("\n");
+    }
+ 
+    filterRow[0] = 11.0;
+    filterRow[1] = 12.0;
+    filterRow[2] = 13.0;
 
+	printf("\n----- Set and Display PE_array Filter Value -----\n");
+    for (int pe_y = 0; pe_y < PE_ARRAY_HEIGHT; pe_y++) {
+        for (int pe_x = 0; pe_x < PE_ARRAY_WIDTH; pe_x++) {
+            PE_array[pe_y][pe_x].set_filter();
+            //printf("%08X ", PE_array[pe_y][pe_x].filter_id);
+            printf("%f ", PE_array[pe_y][pe_x].filter);
+        }
+        printf("\n");
+    }
 
-	Mat2D weight;
-	weight = Mat2D_init(weight, FILTER_SIZE, FILTER_SIZE);
-	Mat2D ifmap;
-	ifmap = Mat2D_init(ifmap, IFMAP_SIZE, IFMAP_SIZE);
-	
-	//Set_weight_id;
-	cout << "------PE_array value setup----------"<< endl;
-	for (int pe_y = 0; pe_y < PE_array.size(); pe_y++) {
-		for (int pe_x = 0; pe_x < PE_array[0].size(); pe_x++) {
-			PE_array[pe_y][pe_x].set_size_value(IFMAP_SIZE, FILTER_SIZE, CHANNEL);
-			PE_array[pe_y][pe_x].set_weight_id(pe_y%FILTER_SIZE); //%3 
-			PE_array[pe_y][pe_x].init_reg_file();
-		}
-	}
-	cout << endl;
+	printf("\n----- Set and Display PE_array Ifmap ID -----\n");
 
-
-
-
-	cout << "------weight pipeline set up------" <<endl; 
-	for (int i = 0; i < FILTER_SIZE; i++) {
-		for (int j = 0; j < FILTER_SIZE; j++) {
-			cout << weight[i][j] << " ";
-			dram_data = weight[i][j];
-			for (int pe_y = 0; pe_y < PE_array.size(); pe_y++) {
-				for (int pe_x = 0; pe_x < PE_array[0].size(); pe_x++) {
-					PE_array[pe_y][pe_x].set_weight(i, j);
-				}
-			}
-		}
-		cout << endl;
-	}
-	cout << endl;
-
-
-
-
-	cout <<"-----PE_array weight show-----"<<endl;
-	for (int pe_y = 0; pe_y < PE_array.size(); pe_y++) {
-		for (int pe_x = 0; pe_x < PE_array[0].size(); pe_x++) {
-            // Shows each row of weights (horizontally)?
-			PE_array[pe_y][pe_x].show_weight();
-		}
-		cout << endl;
-	}
-
+    /*
 	cout << "-----Set PE_array ifmap_id-----" << endl;
 	for (int pe_y = 0; pe_y < PE_array.size(); pe_y++) {
 		for (int pe_x = 0; pe_x < PE_array[0].size(); pe_x++) {
@@ -163,5 +161,6 @@ int main()
 	}
 	cout << "----show ofmap-----" << endl;
 	show_Mat2D(ofmap);
+    */
 	return 0;
 }
