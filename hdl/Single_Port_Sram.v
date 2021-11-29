@@ -7,7 +7,7 @@
 //      https://www.chipverify.com/verilog/verilog-single-port-ram
 //------------------------------------------------------------------------------
 
-module single_port_sram
+module Single_Port_Sram
     #(
         parameter ADDR_WIDTH = 16,      // Address width for data select
         parameter DATA_WIDTH = 8,       // Data width for read/write
