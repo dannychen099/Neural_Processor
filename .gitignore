@@ -5,3 +5,6 @@ xrun.log
 xcelium.d/
 waves.shm/
 .simvision/
+
+# Exclude temporary files while editing
+*.swp
