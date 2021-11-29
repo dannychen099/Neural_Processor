@@ -51,9 +51,13 @@ public:
         psum = *psum_id;
 	}
 
-	void single_line_calc() {
+	void single_line_mac() {
         // Perform the MAC operation, storing the result as a partial sum.
-        this->psum = (this->filter * this->ifmap) + this->psum;
+        psum = (filter * ifmap) + psum;
 	}
+
+    void single_line_acc(double value) {
+        psum += value;
+    }
 
 };
