@@ -11,12 +11,12 @@ module tb;
 
     parameter CLK_PERIOD = 10;
 
-    MAC #(
+    mac #(
         .WIDTH(WIDTH)
     )
-    dut(
-        .in     (in_tb),
-        .w      (w_tb),
+    tb_mac(
+        .A      (in_tb),
+        .B      (w_tb),
         .clk    (clk_tb),
         .rstb   (rstb_tb),
         .out    (out_tb)    

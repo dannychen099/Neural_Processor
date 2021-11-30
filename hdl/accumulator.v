@@ -1,6 +1,6 @@
 `timescale 1ns/10ps
 
-module Accumulator
+module accumulator
     #(
         parameter WIDTH = 16    // Bit width of operands
     )

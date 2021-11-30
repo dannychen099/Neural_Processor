@@ -1,6 +1,6 @@
 `timescale 1ns/10ps
 
-module Multiplier
+module multiplier
     #(
         parameter WIDTH = 16    // Bit width for each operand
     )
