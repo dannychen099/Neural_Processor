@@ -10,19 +10,19 @@ module multicast_controller
         input                       rstb,
         input                       program,
         input                       enable,
-        input                       pe_ready,
+        input                       unit_ready,
         input  [ADDRESS_WIDTH-1:0]  tag,
         input  [ADDRESS_WIDTH-1:0]  tag_id,
-        input  [BITWIDTH-1:0]       input_value,
+        inout  [BITWIDTH-1:0]       input_value,    // Allow bidir data
 
         output wire [BITWIDTH-1:0]  output_value,
-        output wire                 pe_enable
+        output wire                 unit_enable
     );
 
     reg [ADDRESS_WIDTH-1:0] tag_id_reg;
 
-    assign pe_enable = enable && (tag == tag_id_reg) && pe_ready;
-    assign output_value = (pe_enable) ? input_value : 'b0;
+    assign unit_enable = enable && (tag == tag_id_reg) && unit_ready;
+    assign output_value = (unit_enable) ? input_value : 'b0;
 
     always @(clk or negedge rstb) begin
         if (!rstb) begin
