@@ -19,6 +19,7 @@ module tb;
     wire [NEXT_TAG_WIDTH+BITWIDTH-1:0]  input_value;
     wire [NEXT_TAG_WIDTH+BITWIDTH-1:0]  output_value;
     wire                                unit_enable;
+    wire [ADDRESS_WIDTH-1:0]            scan_chain_out;
 
     // Test a forward value-passing controller
     multicast_controller #(
@@ -32,7 +33,8 @@ module tb;
         .enable         (enable),
         .unit_ready     (unit_ready),
         .tag            (tag),
-        .tag_id         (tag_id),
+        .scan_tag_in    (tag_id),
+        .scan_tag_out   (scan_chain_out),
         .input_value    (input_value),
         .output_value   (output_value),
         .unit_enable    (unit_enable)
@@ -47,6 +49,8 @@ module tb;
     assign input_value[BITWIDTH-1:0] = mc_input_value;
     assign output_value[NEXT_TAG_WIDTH+BITWIDTH-1:BITWIDTH] = next_tag_id;
 
+    integer i;
+
     initial begin
         clk             <= 'b0;
         rstb            <= 'b1;
@@ -59,14 +63,20 @@ module tb;
         next_tag_id     <= 'd0;
 
         repeat (1) @(posedge clk);
-        
+
+        // Test scan chain input/output
         $display("Programming...");
         program         <= 'b1;
-        tag_id          <= 'd3;
-        repeat(1) @(posedge clk);
+        for (i = 0; i < 4; i=i+1) begin
+            tag_id      <= i;
+            repeat(1) @(posedge clk);
+            $display("Programmed ID: ", mc.tag_id_reg,
+                "\nScan chain ID output: ", scan_chain_out);
+        end
+        
         program         <= 'b0;
         $display("Programmed ID: ", mc.tag_id_reg);
-
+        
         enable          <= 'd1;
         unit_ready      <= 'd1;
         
@@ -81,7 +91,7 @@ module tb;
             "\nNext Tag ID: ", output_value[NEXT_TAG_WIDTH+BITWIDTH-1:BITWIDTH],
             "\tOutput Value: ", output_value[BITWIDTH-1:0]);
         
-        tag             <= 'd3;
+        tag             <= 'd3; // ID should match
         mc_input_value  <= 'd257;
         next_tag_id     <= 'd2;
         repeat(1) @(posedge clk);
@@ -90,7 +100,7 @@ module tb;
             "\nNext Tag ID: ", output_value[NEXT_TAG_WIDTH+BITWIDTH-1:BITWIDTH],
             "\tOutput Value: ", output_value[BITWIDTH-1:0]);
         
-        tag             <= 'd4;
+        tag             <= 'd4; // Should do nothing...
         mc_input_value  <= 'd33;
         next_tag_id     <= 'd3;
         repeat(1) @(posedge clk);

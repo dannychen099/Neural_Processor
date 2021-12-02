@@ -6,17 +6,18 @@ module multicast_controller
         parameter BITWIDTH      = 16
     )
     (
-        input                       clk,
-        input                       rstb,
-        input                       program,
-        input                       enable,
-        input                       unit_ready,
-        input  [ADDRESS_WIDTH-1:0]  tag,
-        input  [ADDRESS_WIDTH-1:0]  tag_id,
-        inout  [BITWIDTH-1:0]       input_value,    // Allow bidir data
+        input                           clk,
+        input                           rstb,
+        input                           program,
+        input                           enable,
+        input                           unit_ready,
+        input       [ADDRESS_WIDTH-1:0] tag,
+        input       [ADDRESS_WIDTH-1:0] scan_tag_in,    // Scan chain ID input
+        output reg  [ADDRESS_WIDTH-1:0] scan_tag_out,   // Scan chain ID output
+        inout       [BITWIDTH-1:0]      input_value,    // Allow bidir data
 
-        output wire [BITWIDTH-1:0]  output_value,
-        output wire                 unit_enable
+        output wire [BITWIDTH-1:0]      output_value,
+        output wire                     unit_enable
     );
 
     reg [ADDRESS_WIDTH-1:0] tag_id_reg;
@@ -26,10 +27,14 @@ module multicast_controller
 
     always @(clk or negedge rstb) begin
         if (!rstb) begin
-            tag_id_reg  <= 'd0;
+            tag_id_reg      <= 'd0;
+            scan_tag_out    <= 'd0;
         end else begin
             // Program the tag_id if program is set
-            tag_id_reg <= (program) ? tag_id : tag_id_reg;
+            if (program) begin
+                tag_id_reg      <= scan_tag_in;
+                scan_tag_out     <= tag_id_reg;
+            end
         end
     end
 
