@@ -14,3 +14,9 @@ Larger project modules have test benches written to test functionality independe
 cd simulation/
 xrun -64bit -access r ../hdl/*.v ../test/tb_MAC.v
 ```
+
+The `pe.v` module functionality can be tested with the following commands:
+```bash
+cd simulation/
+xrun -64bit -access r ../hdl/pe.v ../hdl/mac.v ../hdl/multiplier.v ../hdl/accumulator.v ../test/tb_pe.v
+```

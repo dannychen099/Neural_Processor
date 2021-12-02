@@ -46,11 +46,11 @@ module mac
 
     always @(posedge clk or negedge rstb) begin
         if (!rstb) begin
-            in_buffer           <= 3'b0;
-            w_buffer            <= 3'b0;
-            mult_buffer_output  <= 11'b0;
-            acc_buffer_output   <= 11'b0;
-            out                 <= 11'b0;
+            in_buffer           <= 'b0;
+            w_buffer            <= 'b0;
+            mult_buffer_output  <= 'b0;
+            acc_buffer_output   <= 'b0;
+            out                 <= 'b0;
         end else begin
             in_buffer           <= A;
             w_buffer            <= B;
