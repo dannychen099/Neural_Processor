@@ -7,21 +7,22 @@ module gin_bus
         parameter NUM_CONTROLLERS   = 10
     )
     (
-        input                       clk,
-        input                       rstb,
-        input                       program,
-        input                       enable,
-        input                       unit_ready,
-        input  [TAG_LENGTH-1:0]     tag,
-        input  [TAG_LENGTH-1:0]     scan_tag_in,
-        inout  [BITWIDTH-1:0]       input_value,    // use inout for psum?
-
-        output [(BITWIDTH)*(NUM_CONTROLLERS)-1:0]   output_value,
-        output [NUM_CONTROLLERS-1:0]                unit_enable
+        input                           clk,
+        input                           rstb,
+        input                           program,
+        input  [TAG_LENGTH-1:0]         scan_tag_in,
+        input                           controller_enable,
+        output [NUM_CONTROLLERS-1:0]    controller_ready,
+        input  [TAG_LENGTH-1:0]         tag,
+        inout  [BITWIDTH-1:0]           data_source,
+        output [NUM_CONTROLLERS-1:0]    target_enable,
+        inout  [(BITWIDTH*NUM_CONTROLLERS)-1:0] output_value,
+        input  [NUM_CONTROLLERS-1:0]    target_ready
     );
 
-        wire   [TAG_LENGTH-1:0]     scan_tag_out    [0:NUM_CONTROLLERS];
-        wire   [BITWIDTH-1:0]       mc_output       [0:NUM_CONTROLLERS-1];
+        wire   [TAG_LENGTH-1:0]         scan_tag_out    [0:NUM_CONTROLLERS];
+        wire   [BITWIDTH-1:0]           mc_output       [0:NUM_CONTROLLERS-1];
+        wire   [BITWIDTH-1:0]           input_value;
 
         assign scan_tag_out[0] = scan_tag_in;
 
@@ -38,17 +39,18 @@ module gin_bus
                     .BITWIDTH       (BITWIDTH)
                 )
                 mc (
-                    .clk            (clk),
-                    .rstb           (rstb),
-                    .program        (program),
-                    .enable         (enable),
-                    .unit_ready     (unit_ready),
-                    .tag            (tag),
-                    .scan_tag_in    (scan_tag_out[i]),
-                    .scan_tag_out   (scan_tag_out[i+1]),
-                    .input_value    (input_value),
-                    .output_value   (mc_output[i]),
-                    .unit_enable    (unit_enable[i])
+                    .clk                (clk),
+                    .rstb               (rstb),
+                    .program            (program),
+                    .scan_tag_in        (scan_tag_out[i]),
+                    .scan_tag_out       (scan_tag_out[i+1]),
+                    .controller_enable  (controller_enable),
+                    .controller_ready   (controller_ready[i]),
+                    .tag                (tag),
+                    .input_value        (data_source),
+                    .target_enable      (target_enable[i]),
+                    .target_ready       (target_ready[i]),
+                    .output_value       (mc_output[i])
                 );
             end
         endgenerate
