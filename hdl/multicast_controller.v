@@ -1,29 +1,34 @@
 `timescale 1ns/10ps
 
 module multicast_controller
-    #(
-        parameter ADDRESS_WIDTH = 4,
-        parameter BITWIDTH      = 16
-    )
-    (
-        input                           clk,
-        input                           rstb,
-        input                           program,
-        input                           enable,
-        input                           unit_ready,
-        input       [ADDRESS_WIDTH-1:0] tag,
-        input       [ADDRESS_WIDTH-1:0] scan_tag_in,    // Scan chain ID input
-        output reg  [ADDRESS_WIDTH-1:0] scan_tag_out,   // Scan chain ID output
-        output wire [BITWIDTH-1:0]      output_value,
-        output wire                     unit_enable,
-        inout       [BITWIDTH-1:0]      input_value     // Allow bidir data
-
-    );
+#(
+    parameter ADDRESS_WIDTH = 4,
+    parameter BITWIDTH      = 16
+)
+(
+    // Clock and reset ports
+    input                           clk,
+    input                           rstb,
+    // Scan chain configuration ports
+    input                           program,            // Set for programming
+    input       [ADDRESS_WIDTH-1:0] scan_tag_in,
+    output reg  [ADDRESS_WIDTH-1:0] scan_tag_out,
+    // Ports on incoming data side (coming into conroller)
+    input                           controller_enable,  // Enable the controller
+    output wire                     controller_ready,   // Pass target_ready out
+    input       [ADDRESS_WIDTH-1:0] tag,                // Address tag
+    inout       [BITWIDTH-1:0]      input_value,        // Allow bidir data
+    // Ports on outgoing data side (to PE or other bus)
+    output wire                     target_enable,      // Enable the target
+    input                           target_ready,       // Target state
+    inout wire [BITWIDTH-1:0]       output_value        // Data to be passed on
+);
 
     reg [ADDRESS_WIDTH-1:0] tag_id_reg;
 
-    assign unit_enable = enable & (tag_id_reg == tag) & unit_ready;
-    assign output_value = (unit_enable) ? input_value : 'b0;
+    assign target_enable = controller_enable & target_ready & (tag_id_reg == tag);
+    assign output_value = (target_enable) ? input_value : 'b0;
+    assign controller_ready = target_ready;
 
     always @(clk or negedge rstb) begin
         if (!rstb) begin

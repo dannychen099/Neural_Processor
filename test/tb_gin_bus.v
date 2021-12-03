@@ -6,17 +6,19 @@ module tb();
     parameter   NUM_CONTROLLERS = 10;
     parameter   CLK_PERIOD      = 10;
 
-    reg                       clk;
-    reg                       rstb;
-    reg                       program;
-    reg                       enable;
-    reg                       unit_ready;
-    reg  [TAG_LENGTH-1:0]     tag;
-    reg  [TAG_LENGTH-1:0]     scan_tag_in;
-    reg  [TAG_LENGTH-1:0]     input_reg;
-    wire [BITWIDTH-1:0]       input_value;
-    wire [(BITWIDTH)*(NUM_CONTROLLERS)-1:0] output_value;
-    wire [NUM_CONTROLLERS-1:0]              unit_enable;
+    reg                         clk;
+    reg                         rstb;
+    reg                         program;
+    reg  [TAG_LENGTH-1:0]       scan_tag_in;
+    reg                         controller_enable;
+    reg  [TAG_LENGTH-1:0]       tag;
+    reg  [TAG_LENGTH-1:0]       data_source;
+    reg  [NUM_CONTROLLERS-1:0]  target_ready;
+    
+    wire [BITWIDTH-1:0]                     input_value;
+    wire [(BITWIDTH*NUM_CONTROLLERS)-1:0]   output_value;
+    wire [NUM_CONTROLLERS-1:0]              controller_ready;
+    wire [NUM_CONTROLLERS-1:0]              target_enable;
 
     gin_bus
     #(
@@ -25,19 +27,20 @@ module tb();
         .NUM_CONTROLLERS    (NUM_CONTROLLERS)
     )
     tb_gin_bus(
-        .clk            (clk),
-        .rstb           (rstb),
-        .program        (program),
-        .enable         (enable),
-        .unit_ready     (unit_ready),
-        .tag            (tag),
-        .scan_tag_in    (scan_tag_in),
-        .input_value    (input_value),
-        .output_value   (output_value),
-        .unit_enable    (unit_enable)
+        .clk                (clk),
+        .rstb               (rstb),
+        .program            (program),
+        .scan_tag_in        (scan_tag_in),
+        .controller_enable  (controller_enable),
+        .controller_ready   (controller_ready),
+        .tag                (tag),
+        .data_source        (input_value),
+        .target_enable      (target_enable),
+        .output_value       (output_value),
+        .target_ready       (target_ready)
     );
 
-    assign input_value = input_reg;
+    assign input_value = data_source;
 
     always #(CLK_PERIOD) clk = ~clk;
 
@@ -46,7 +49,7 @@ module tb();
     initial begin
         
         $monitor("tag: ", tag,
-            "\tinput_reg ", input_reg,
+            "\tdata_source ", data_source,
             "\nprogrammed tag_id:\t",
                 tb_gin_bus.mc_vector[0].mc.tag_id_reg, " ",
                 tb_gin_bus.mc_vector[1].mc.tag_id_reg, " ",
@@ -64,22 +67,22 @@ module tb();
                 tb_gin_bus.mc_output[4], " ", tb_gin_bus.mc_output[5], " ",
                 tb_gin_bus.mc_output[6], " ", tb_gin_bus.mc_output[7], " ",
                 tb_gin_bus.mc_output[8], " ", tb_gin_bus.mc_output[9], "\n");
+        
         // Initialize simulation
-        clk             <= 'b0;
-        rstb            <= 'b0;
-        rstb            <= 'b1;
-        program         <= 'b0;
-        enable          <= 'b0;
-        unit_ready      <= 'b0;
-        tag             <= 'd0;
-        scan_tag_in     <= 'd0;
-        input_reg       <= 'sd0;
+        clk                 <= 'b0;
+        rstb                <= 'b0;
+        rstb                <= 'b1;
+        program             <= 'b0;
+        scan_tag_in         <= 'd0;
+        controller_enable   <= 'b0;
+        tag                 <= 'd0;
+        data_source         <= 'sd0;
+        target_ready        <= 'b0;
         repeat (1) @(posedge clk);
 
         // Assume multicast controllers are enabled and ready
-        enable          <= 'b1;
-        unit_ready      <= 'b1; 
-        
+        controller_enable   <= 'b1;
+        target_ready        <= ~'b0; 
         $display("Programming...");
         program         <= 'b1;
         for (i = NUM_CONTROLLERS-1; i >= 0; i = i-1) begin
@@ -91,23 +94,24 @@ module tb();
         
         program         <= 'b0;
         repeat (1) @(posedge clk);
-        input_reg       <= 'sd13;
+        data_source       <= 'sd13;
         tag             <= 'd3;
         #1;
 
-        $display("unit_enable = %b & (%b == %b) & %b    : %b",
-            tb_gin_bus.mc_vector[3].mc.enable,
-            tb_gin_bus.mc_vector[3].mc.tag,
+        $display(target_ready);        
+        $display("unit_enable = %b & %b & (%b == %b) : %b",
+            tb_gin_bus.mc_vector[3].mc.controller_enable,
+            tb_gin_bus.mc_vector[3].mc.target_ready,
             tb_gin_bus.mc_vector[3].mc.tag_id_reg,
-            tb_gin_bus.mc_vector[3].mc.unit_ready,
-            tb_gin_bus.mc_vector[3].mc.unit_enable);
+            tb_gin_bus.mc_vector[3].mc.tag,
+            tb_gin_bus.mc_vector[3].mc.target_enable);
         $display(tb_gin_bus.mc_vector[3].mc.output_value);
         
-        input_reg       <= 'sd11;
+        data_source       <= 'sd11;
         tag             <= 'd1;
         #1;
         
-        input_reg       <= 'sd19;
+        data_source       <= 'sd19;
         tag             <= 'd9;
         #1; $finish;
     end
