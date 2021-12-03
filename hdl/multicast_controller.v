@@ -14,15 +14,15 @@ module multicast_controller
         input       [ADDRESS_WIDTH-1:0] tag,
         input       [ADDRESS_WIDTH-1:0] scan_tag_in,    // Scan chain ID input
         output reg  [ADDRESS_WIDTH-1:0] scan_tag_out,   // Scan chain ID output
-        inout       [BITWIDTH-1:0]      input_value,    // Allow bidir data
-
         output wire [BITWIDTH-1:0]      output_value,
-        output wire                     unit_enable
+        output wire                     unit_enable,
+        inout       [BITWIDTH-1:0]      input_value     // Allow bidir data
+
     );
 
     reg [ADDRESS_WIDTH-1:0] tag_id_reg;
 
-    assign unit_enable = enable && (tag == tag_id_reg) && unit_ready;
+    assign unit_enable = enable & (tag_id_reg == tag) & unit_ready;
     assign output_value = (unit_enable) ? input_value : 'b0;
 
     always @(clk or negedge rstb) begin
@@ -33,7 +33,7 @@ module multicast_controller
             // Program the tag_id if program is set
             if (program) begin
                 tag_id_reg      <= scan_tag_in;
-                scan_tag_out     <= tag_id_reg;
+                scan_tag_out    <= tag_id_reg;
             end
         end
     end
