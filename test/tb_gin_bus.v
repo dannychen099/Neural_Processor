@@ -19,6 +19,7 @@ module tb();
     wire [(BITWIDTH*NUM_CONTROLLERS)-1:0]   output_value;
     wire [NUM_CONTROLLERS-1:0]              controller_ready;
     wire [NUM_CONTROLLERS-1:0]              target_enable;
+    wire [TAG_LENGTH-1:0]                   scan_tag_next_bus;
 
     gin_bus
     #(
@@ -31,6 +32,7 @@ module tb();
         .rstb               (rstb),
         .program            (program),
         .scan_tag_in        (scan_tag_in),
+        .scan_tag_next_bus  (scan_tag_next_bus),
         .controller_enable  (controller_enable),
         .controller_ready   (controller_ready),
         .tag                (tag),
@@ -66,7 +68,8 @@ module tb();
                 tb_gin_bus.mc_output[2], " ", tb_gin_bus.mc_output[3], " ",
                 tb_gin_bus.mc_output[4], " ", tb_gin_bus.mc_output[5], " ",
                 tb_gin_bus.mc_output[6], " ", tb_gin_bus.mc_output[7], " ",
-                tb_gin_bus.mc_output[8], " ", tb_gin_bus.mc_output[9], "\n");
+                tb_gin_bus.mc_output[8], " ", tb_gin_bus.mc_output[9], " ",
+            "\nscan_tag_next_bus: ", scan_tag_next_bus, "\n");
         
         // Initialize simulation
         clk                 <= 'b0;
@@ -85,7 +88,7 @@ module tb();
         target_ready        <= ~'b0; 
         $display("Programming...");
         program         <= 'b1;
-        for (i = NUM_CONTROLLERS-1; i >= 0; i = i-1) begin
+        for (i = NUM_CONTROLLERS+2; i >= 0; i = i-1) begin
             scan_tag_in <= i;
             repeat (1) @(posedge clk);
         end

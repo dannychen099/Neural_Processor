@@ -11,13 +11,14 @@ module gin_bus
         input                           rstb,
         input                           program,
         input  [TAG_LENGTH-1:0]         scan_tag_in,
+        output [TAG_LENGTH-1:0]         scan_tag_next_bus,
         input                           controller_enable,
         output [NUM_CONTROLLERS-1:0]    controller_ready,
         input  [TAG_LENGTH-1:0]         tag,
         inout  [BITWIDTH-1:0]           data_source,
         output [NUM_CONTROLLERS-1:0]    target_enable,
-        inout  [(BITWIDTH*NUM_CONTROLLERS)-1:0] output_value,
-        input  [NUM_CONTROLLERS-1:0]    target_ready
+        input  [NUM_CONTROLLERS-1:0]    target_ready,
+        inout  [(BITWIDTH*NUM_CONTROLLERS)-1:0] output_value
     );
 
         wire   [TAG_LENGTH-1:0]         scan_tag_out    [0:NUM_CONTROLLERS];
@@ -25,6 +26,7 @@ module gin_bus
         wire   [BITWIDTH-1:0]           input_value;
 
         assign scan_tag_out[0] = scan_tag_in;
+        assign scan_tag_next_bus = scan_tag_out[NUM_CONTROLLERS];
 
         generate
             genvar i;
