@@ -15,6 +15,7 @@ module gin
     input                           rstb,
     input                           program,
     input  [TAG_LENGTH-1:0]         scan_tag_in,
+    output [TAG_LENGTH-1:0]         scan_tag_out,
     input                           gin_enable,
     output                          gin_ready,
     inout  [Y_PACKET_LENGTH-1:0]    data_packet, //2 tags in data, to split
@@ -39,11 +40,8 @@ module gin
     wire [X_BUS_SIZE-1:0]               x_bus_pe_enable [0:Y_BUS_SIZE-1];
     wire [X_BUS_SIZE-1:0]               x_bus_pe_ready  [0:Y_BUS_SIZE-1];
 
-    // Inter-bus scan chain programming connections. The scan chain goes in
-    // the order: Y-Bus -> X-Bus1 -> X-Bus2 -> ... -> X-BusN
-    wire [TAG_LENGTH-1:0] bus_scan_tag_in   [0:X_BUS_SIZE+Y_BUS_SIZE];
-    wire [TAG_LENGTH-1:0] bus_scan_tag_out  [0:X_BUS_SIZE+Y_BUS_SIZE];
-    assign bus_scan_tag_in[0] = scan_tag_in;
+    wire [TAG_LENGTH-1:0]               bus_scan_tag_out[0:Y_BUS_SIZE];
+    assign scan_tag_out = bus_scan_tag_out[Y_BUS_SIZE];
 
 
     //-------------------------------------------------------------------------
@@ -70,8 +68,8 @@ module gin
         .clk                (clk),
         .rstb               (rstb),
         .program            (program),
-        .scan_tag_in        (bus_scan_tag_in[0]),
-        .scan_tag_next_bus  (bus_scan_tag_out[0]),
+        .scan_tag_in        (scan_tag_in),
+        .scan_tag_next_bus  (bus_scan_tag_out[0]), // WHY is this only x? The data is not passing between multicast controllers...
         .bus_enable         (gin_enable),
         .bus_ready          (gin_ready),
         .tag                (row_id),
@@ -80,14 +78,10 @@ module gin
         .target_ready       (x_bus_ready),
         .output_value       (y_bus_output)
     );
-
+/*
     generate
         genvar i;
         for (i = 0; i < Y_BUS_SIZE; i = i+1) begin: x_bus
-
-            // Take the previous bus's scan tag output and set it to the
-            // current bus's scan tag input
-            assign bus_scan_tag_in[i+1] = bus_scan_tag_out[i];
 
             // Take each Y-bus controller output and assign the data packet to
             // each X-bus's input data packet.
@@ -109,7 +103,7 @@ module gin
                 .clk                (clk),
                 .rstb               (rstb),
                 .program            (program),
-                .scan_tag_in        (bus_scan_tag_in[i+1]),
+                .scan_tag_in        (bus_scan_tag_out[i]),
                 .scan_tag_next_bus  (bus_scan_tag_out[i+1]),
                 .bus_enable         (x_bus_enable[i]),
                 .bus_ready          (x_bus_ready[i]),
@@ -121,4 +115,5 @@ module gin
             );
         end
     endgenerate
+    */
 endmodule
