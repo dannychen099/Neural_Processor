@@ -12,21 +12,24 @@ module gin_bus
         input                           program,
         input  [TAG_LENGTH-1:0]         scan_tag_in,
         output [TAG_LENGTH-1:0]         scan_tag_next_bus,
-        input                           controller_enable,
-        output [NUM_CONTROLLERS-1:0]    controller_ready,
+        input                           bus_enable,
+        output                          bus_ready,
         input  [TAG_LENGTH-1:0]         tag,
         inout  [BITWIDTH-1:0]           data_source,
-        output [NUM_CONTROLLERS-1:0]    target_enable,
-        input  [NUM_CONTROLLERS-1:0]    target_ready,
+        input  [NUM_CONTROLLERS-1:0]    target_ready,   // State of each target
+        output [NUM_CONTROLLERS-1:0]    target_enable,  // Enable signals for target
         inout  [(BITWIDTH*NUM_CONTROLLERS)-1:0] output_value
     );
 
         wire   [TAG_LENGTH-1:0]         scan_tag_out    [0:NUM_CONTROLLERS];
         wire   [BITWIDTH-1:0]           mc_output       [0:NUM_CONTROLLERS-1];
         wire   [BITWIDTH-1:0]           input_value;
+        wire   [NUM_CONTROLLERS-1:0]    controller_ready;
 
-        assign scan_tag_out[0] = scan_tag_in;
+        assign scan_tag_out[0]   = scan_tag_in;
         assign scan_tag_next_bus = scan_tag_out[NUM_CONTROLLERS];
+
+        assign bus_ready = &controller_ready;
 
         generate
             genvar i;
@@ -46,7 +49,7 @@ module gin_bus
                     .program            (program),
                     .scan_tag_in        (scan_tag_out[i]),
                     .scan_tag_out       (scan_tag_out[i+1]),
-                    .controller_enable  (controller_enable),
+                    .controller_enable  (bus_enable),
                     .controller_ready   (controller_ready[i]),
                     .tag                (tag),
                     .input_value        (data_source),

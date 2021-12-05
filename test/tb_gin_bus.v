@@ -10,14 +10,14 @@ module tb();
     reg                         rstb;
     reg                         program;
     reg  [TAG_LENGTH-1:0]       scan_tag_in;
-    reg                         controller_enable;
+    reg                         bus_enable;
     reg  [TAG_LENGTH-1:0]       tag;
     reg  [TAG_LENGTH-1:0]       data_source;
     reg  [NUM_CONTROLLERS-1:0]  target_ready;
     
     wire [BITWIDTH-1:0]                     input_value;
     wire [(BITWIDTH*NUM_CONTROLLERS)-1:0]   output_value;
-    wire [NUM_CONTROLLERS-1:0]              controller_ready;
+    wire                                    bus_ready;
     wire [NUM_CONTROLLERS-1:0]              target_enable;
     wire [TAG_LENGTH-1:0]                   scan_tag_next_bus;
 
@@ -33,8 +33,8 @@ module tb();
         .program            (program),
         .scan_tag_in        (scan_tag_in),
         .scan_tag_next_bus  (scan_tag_next_bus),
-        .controller_enable  (controller_enable),
-        .controller_ready   (controller_ready),
+        .bus_enable         (bus_enable),
+        .bus_ready          (bus_ready),
         .tag                (tag),
         .data_source        (input_value),
         .target_enable      (target_enable),
@@ -77,14 +77,14 @@ module tb();
         rstb                <= 'b1;
         program             <= 'b0;
         scan_tag_in         <= 'd0;
-        controller_enable   <= 'b0;
+        bus_enable          <= 'b0;
         tag                 <= 'd0;
         data_source         <= 'sd0;
         target_ready        <= 'b0;
         repeat (1) @(posedge clk);
 
         // Assume multicast controllers are enabled and ready
-        controller_enable   <= 'b1;
+        bus_enable          <= 'b1;
         target_ready        <= ~'b0; 
         $display("Programming...");
         program         <= 'b1;
