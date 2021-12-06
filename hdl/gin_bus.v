@@ -15,10 +15,10 @@ module gin_bus
         input                           bus_enable,
         output                          bus_ready,
         input  [TAG_LENGTH-1:0]         tag,
-        inout  [BITWIDTH-1:0]           data_source,
+        input  [BITWIDTH-1:0]           data_source,
         input  [NUM_CONTROLLERS-1:0]    target_ready,   // State of each target
         output [NUM_CONTROLLERS-1:0]    target_enable,  // Enable signals for target
-        inout  [(BITWIDTH*NUM_CONTROLLERS)-1:0] output_value
+        output [(BITWIDTH*NUM_CONTROLLERS)-1:0] output_value
     );
 
         wire   [TAG_LENGTH-1:0]         scan_tag_out    [0:NUM_CONTROLLERS];
