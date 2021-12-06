@@ -196,13 +196,13 @@ module tb();
         // Push the Y-bus values into the scan chain
         for (i = 0; i < Y_LENGTH; i = i + 1) begin
             scan_tag_in <= scan_chain_data[i];
-            repeat (1) @(posedge clk);
+            repeat (2) @(posedge clk);
         end
         
         // Push each X-bus values into the scan chain
         for (i = Y_LENGTH; i < Y_LENGTH+Y_LENGTH*X_LENGTH; i = i + 1) begin
             scan_tag_in <= scan_chain_data[i];
-            repeat (1) @(posedge clk);
+            repeat (2) @(posedge clk);
         end
         program     <= 'b0;
 
@@ -218,9 +218,9 @@ module tb();
 
         for (row = 0; row < 1; row = row + 1) begin // Use ROW_TAG_MAX for full range
             for (col = 0; col <= COL_TAG_MAX; col = col + 1) begin
+                data    <= 'd65535;
                 row_tag <= row;
                 col_tag <= col;
-                data    <= 'd65535;
                 repeat (1) @(posedge clk);
                 
                 `ifdef DIAG

@@ -30,7 +30,7 @@ module multicast_controller
     assign output_value = (target_enable) ? input_value : 'b0;
     assign controller_ready = target_ready;
 
-    always @(clk or negedge rstb) begin
+    always @(posedge clk or negedge rstb) begin
         if (!rstb) begin
             tag_id_reg      <= 'd0;
             scan_tag_out    <= 'd0;
