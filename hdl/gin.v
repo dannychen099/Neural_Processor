@@ -27,7 +27,7 @@ module gin
 
     // Y-bus internal connections (single y-bus)
     wire [TAG_LENGTH-1:0]                   row_id;
-    wire [X_PACKET_LENGTH-1:0]              value_to_pass;
+    wire [X_PACKET_LENGTH-1:0]              y_value_to_pass;
     wire [(X_PACKET_LENGTH*Y_BUS_SIZE)-1:0] y_bus_output;
 
     // X-bus internal connections (multiple x-buses)
@@ -35,8 +35,8 @@ module gin
     wire [X_PACKET_LENGTH-1:0]          x_data_packet   [0:Y_BUS_SIZE-1];
     wire [(BITWIDTH*X_BUS_SIZE)-1:0]    x_bus_output    [0:Y_BUS_SIZE-1];
     wire [BITWIDTH-1:0]                 x_value_to_pass [0:Y_BUS_SIZE-1];
-    wire [X_BUS_SIZE-1:0]               x_bus_enable;   // is y-bus target
-    wire [X_BUS_SIZE-1:0]               x_bus_ready;    // is y-bus target
+    wire [Y_BUS_SIZE-1:0]               x_bus_enable;
+    wire [Y_BUS_SIZE-1:0]               x_bus_ready; 
     wire [X_BUS_SIZE-1:0]               x_bus_pe_enable [0:Y_BUS_SIZE-1];
     wire [X_BUS_SIZE-1:0]               x_bus_pe_ready  [0:Y_BUS_SIZE-1];
 
@@ -44,18 +44,13 @@ module gin
     assign scan_tag_out = bus_scan_tag_out[Y_BUS_SIZE];
 
 
-    //-------------------------------------------------------------------------
-    // Y-bus configuration. This takes a single input and routes it to any
-    // ID-matching X-buses.
-    //-------------------------------------------------------------------------
-
     // Split the incoming data packet into the tag (row_id) and value 
-    assign row_id = data_packet[Y_PACKET_LENGTH-1:Y_PACKET_LENGTH-TAG_LENGTH];
+    assign row_id = data_packet[Y_PACKET_LENGTH-1:X_PACKET_LENGTH];
     assign y_value_to_pass = data_packet[X_PACKET_LENGTH-1:0];
 
     // Y-bus multicast controller state/enable
     assign gin_ready = &x_bus_ready;
-    assign x_bus_enable = {X_BUS_SIZE{gin_enable}};
+    //assign x_bus_enable = {X_BUS_SIZE{gin_enable}};
 
     gin_bus
     #(
@@ -69,19 +64,23 @@ module gin
         .rstb               (rstb),
         .program            (program),
         .scan_tag_in        (scan_tag_in),
-        .scan_tag_next_bus  (bus_scan_tag_out[0]), // WHY is this only x? The data is not passing between multicast controllers...
+        .scan_tag_next_bus  (bus_scan_tag_out[0]), 
         .bus_enable         (gin_enable),
         .bus_ready          (gin_ready),
         .tag                (row_id),
-        .data_source        (value_to_pass),
+        .data_source        (y_value_to_pass),
         .target_enable      (x_bus_enable),
         .target_ready       (x_bus_ready),
         .output_value       (y_bus_output)
     );
-/*
+
     generate
         genvar i;
-        for (i = 0; i < Y_BUS_SIZE; i = i+1) begin: x_bus
+        for (i = 0; i < Y_BUS_SIZE; i = i+1) begin: x_bus_vector
+
+            //assign x_bus_pe_ready[i] = x_bus_ready[i];
+            //assign x_bus_pe_enable[i] = x_bus_enable[i];
+            
 
             // Take each Y-bus controller output and assign the data packet to
             // each X-bus's input data packet.
@@ -115,5 +114,30 @@ module gin
             );
         end
     endgenerate
+
+    assign pe_enable[1*X_BUS_SIZE-1:0*X_BUS_SIZE] = x_bus_pe_enable[0];
+    assign pe_enable[2*X_BUS_SIZE-1:1*X_BUS_SIZE] = x_bus_pe_enable[1];
+    assign pe_enable[3*X_BUS_SIZE-1:2*X_BUS_SIZE] = x_bus_pe_enable[2];
+    assign pe_enable[4*X_BUS_SIZE-1:3*X_BUS_SIZE] = x_bus_pe_enable[3];
+
+
+    assign pe_value[BITWIDTH-1:0] = x_bus_output[0];
+    // hard-coded way. The flattening way is preffered
+    /*
+    assign x_bus_pe_ready[0] = pe_ready[X_BUS_SIZE-1:0];
+    assign x_bus_pe_ready[1] = pe_ready[2*X_BUS_SIZE-1:X_BUS_SIZE];
+    assign x_bus_pe_ready[2] = pe_ready[3*X_BUS_SIZE-1:2*X_BUS_SIZE];
+    assign x_bus_pe_ready[3] = pe_ready[4*X_BUS_SIZE-1:3*X_BUS_SIZE];
     */
+
+    // Flatten 2D X-bus signals into 1D input and output signals
+    generate
+        genvar j;
+        for (i = 0; i < Y_BUS_SIZE; i = i+1) begin
+            for (j = 0; j < X_BUS_SIZE; j = j+1) begin
+                assign x_bus_pe_ready[i][j] = pe_ready[i+j]; 
+                //assign pe_enable[i+j] = x_bus_pe_enable[i][j];
+            end
+        end
+    endgenerate
 endmodule

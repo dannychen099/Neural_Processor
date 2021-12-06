@@ -2,7 +2,7 @@
 
 module tb();
     parameter BITWIDTH              = 16;
-    parameter TAG_LENGTH            = 10;
+    parameter TAG_LENGTH            = 4;
     parameter X_LENGTH              = 4;
     parameter Y_LENGTH              = 4;
     parameter INPUT_PACKET_LENGTH   = 2*TAG_LENGTH+BITWIDTH;
@@ -64,6 +64,7 @@ module tb();
     (
         .clk            (clk),
         .rstb           (rstb),
+        .program        (program),
         .scan_tag_in    (scan_tag_in),
         .scan_tag_out   (scan_tag_out),
         .gin_enable     (gin_enable),
@@ -84,7 +85,6 @@ module tb();
     integer i;
 
     initial begin
-        $monitor(tb_gin.y_bus.scan_tag_next_bus);
         clk         <= 'b0;
         rstb        <= 'b0;
         rstb        <= 'b1;
@@ -103,40 +103,95 @@ module tb();
         end
 */
         // Begin programming
-        gin_enable  <= 'b1;
-        pe_ready    <= ~'b0;    // Simulate that all PEs are ready
         $display("Programming...");
         program     <= 'b1;
-        for (i = 0; i < Y_LENGTH+Y_LENGTH*X_LENGTH; i = i + 1) begin
-            //scan_tag_in <= scan_chain_data[i];
-            scan_tag_in <= i;
+
+        // Push the Y-bus values into the scan chain
+        for (i = 0; i < Y_LENGTH; i = i + 1) begin
+            scan_tag_in <= scan_chain_data[i];
             repeat (1) @(posedge clk);
-            #1;$display("scan_tag_in:       %2d\nscan_tag_next_bus", tb_gin.y_bus.scan_tag_in, tb_gin.y_bus.scan_tag_next_bus, tb_gin.y_bus.mc_vector[1].mc.scan_tag_in);
-            $display("Y-bus programmed tag_id: ",
-                tb_gin.y_bus.mc_vector[0].mc.tag_id_reg, " ",
-                tb_gin.y_bus.mc_vector[1].mc.tag_id_reg, " ",
-                tb_gin.y_bus.mc_vector[2].mc.tag_id_reg, " ",
-                tb_gin.y_bus.mc_vector[3].mc.tag_id_reg, " ",
-                "\n");
+        end
+        
+        // Push each X-bus values into the scan chain
+        for (i = Y_LENGTH; i < Y_LENGTH+Y_LENGTH*X_LENGTH; i = i + 1) begin
+            scan_tag_in <= scan_chain_data[i];
+            repeat (1) @(posedge clk);
         end
         program     <= 'b0;
-        
+       
+        $display("Y-Bus and X-Bus Programmed Tag IDs:");
+        $write("\n%2d\t", tb_gin.y_bus.mc_vector[0].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[0].x_bus.mc_vector[1].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[0].x_bus.mc_vector[2].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[0].x_bus.mc_vector[3].mc.tag_id_reg, "\n");
+        $write("\n%2d\t", tb_gin.y_bus.mc_vector[1].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[1].x_bus.mc_vector[0].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[1].x_bus.mc_vector[1].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[1].x_bus.mc_vector[2].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[1].x_bus.mc_vector[3].mc.tag_id_reg, "\n");
+        $write("\n%2d\t", tb_gin.y_bus.mc_vector[2].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[2].x_bus.mc_vector[0].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[2].x_bus.mc_vector[1].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[2].x_bus.mc_vector[2].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[2].x_bus.mc_vector[3].mc.tag_id_reg, "\n");
+        $write("\n%2d\t", tb_gin.y_bus.mc_vector[3].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[3].x_bus.mc_vector[0].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[3].x_bus.mc_vector[1].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[3].x_bus.mc_vector[2].mc.tag_id_reg);
+        $write("%d ", tb_gin.x_bus_vector[3].x_bus.mc_vector[3].mc.tag_id_reg, "\n");
 
-/*
         $display("Sending data...");
-        row_tag <= 'd1;
-        col_tag <= 'd1;
-        data    <= 'd9;
+        gin_enable  <= 'b1;
+        pe_ready    <= ~'b0;    // Simulate that all PEs are ready
+        row_tag <= 'd0;
+        col_tag <= 'b0;
+        data    <= 'd65535;
+        repeat (1) @(posedge clk);
 
-        repeat(1) @(posedge clk);
         for (row = 0; row < Y_LENGTH; row = row + 1) begin
             for (col = 0; col < X_LENGTH; col = col + 1) begin
-                $write("%2d ", pe_value[row+col]);
+                $write("%4d ", pe_value[BITWIDTH*(row+col)+:BITWIDTH]);
             end
             $display();
         end
-*/
 
         $finish;
     end
+
+
 endmodule
+
+/*
+        $display("X-bus target_enable = %b & %b & (%b == %b) : %b",
+            tb_gin.y_bus.mc_vector[0].mc.controller_enable,
+            tb_gin.y_bus.mc_vector[0].mc.target_ready,
+            tb_gin.y_bus.mc_vector[0].mc.tag_id_reg,
+            tb_gin.y_bus.mc_vector[0].mc.tag,
+            tb_gin.y_bus.mc_vector[0].mc.target_enable);
+        $display("PE target_enable = %b & %b & (%b == %b) : %b",
+            tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.controller_enable,
+            tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.target_ready,
+            tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.tag_id_reg,
+            tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.tag,
+            tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.target_enable);
+
+
+        $display("y_data_packet:%24b = {%4b %20b} %24b", tb_gin.data_packet, tb_gin.row_id, tb_gin.y_value_to_pass, data_packet);
+        $display("y_bus_output:%b", tb_gin.y_bus.output_value);
+        $display("x_data_packet[0]:%b", tb_gin.x_data_packet[0]);
+        $display("x_value_to_pass[0]:%b", tb_gin.x_value_to_pass[0]);
+        $display("x_bus_output[0]:%b", tb_gin.x_bus_output[0]);
+
+        $display("pe_enable:%b\tpe_ready:%b", pe_enable, pe_ready);
+//        $display("x_bus_enable:%b", tb_gin.x_bus_enable);
+
+//        $display("Y-Bus Controller Status\n\tEnable:%b, Ready:%b", tb_gin.y_bus.mc_vector[0].mc.controller_enable, tb_gin.y_bus.mc_vector[0].mc.controller_ready);
+//        $display("Y-Bus Target Status (X-Bus)\n\tEnable:%b, Ready:%b", tb_gin.y_bus.mc_vector[0].mc.target_enable, tb_gin.y_bus.mc_vector[0].mc.target_ready);
+
+        $display("\nX-Bus Vector Given from Y:\n\tEnable:%b, Ready:%b", tb_gin.x_bus_enable, tb_gin.x_bus_ready);
+        $display("PE vector given from Xbus0:\n\tEnable:%b, Ready:%b", tb_gin.x_bus_vector[0].x_bus.target_enable, tb_gin.x_bus_vector[0].x_bus.target_ready);
+        
+        $display("\nX-Bus0 Controller Status\n\tEnable:%b, Ready:%b", tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.controller_enable, tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.controller_ready);
+        $display("X-Bus0 Target Status (PE0)\n\tEnable:%b, Ready:%b", tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.target_enable, tb_gin.x_bus_vector[0].x_bus.mc_vector[0].mc.target_ready);
+*/
