@@ -4,7 +4,7 @@ module gin_bus
     #(
         parameter BITWIDTH          = 16,
         parameter TAG_LENGTH        = 4,
-        parameter NUM_CONTROLLERS   = 10
+        parameter NUM_CONTROLLERS   = 4
     )
     (
         input                           clk,

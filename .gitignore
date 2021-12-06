@@ -6,5 +6,11 @@ xcelium.d/
 waves.shm/
 .simvision/
 
+# Excldue Cadence Genus files
+*.tstamp
+*.cmd*
+*.log*
+*/fv/
+
 # Exclude temporary files while editing
 *.swp
