@@ -81,7 +81,6 @@ module gin
             //assign x_bus_pe_ready[i] = x_bus_ready[i];
             //assign x_bus_pe_enable[i] = x_bus_enable[i];
             
-
             // Take each Y-bus controller output and assign the data packet to
             // each X-bus's input data packet.
             assign x_data_packet[i]
@@ -91,6 +90,14 @@ module gin
             // value to pass
             assign col_id[i] = x_data_packet[i][X_PACKET_LENGTH-1:BITWIDTH];
             assign x_value_to_pass[i] = x_data_packet[i][BITWIDTH-1:0];
+    
+            //assign pe_enable[(i+1)*X_BUS_SIZE-1:i*X_BUS_SIZE] = x_bus_pe_enable[i];
+            assign pe_enable[i*X_BUS_SIZE +: X_BUS_SIZE] = x_bus_pe_enable[i];
+            assign pe_value[i*X_BUS_SIZE*BITWIDTH +: X_BUS_SIZE*BITWIDTH] = x_bus_output[i];
+            //assign x_bus_pe_ready[i] = pe_ready[(i+1)*X_BUS_SIZE-1:i*X_BUS_SIZE];
+            assign x_bus_pe_ready[i] = pe_ready[i*X_BUS_SIZE +: X_BUS_SIZE];
+            
+            
             gin_bus
             #(
                 .BITWIDTH       (BITWIDTH),
@@ -114,21 +121,26 @@ module gin
             );
         end
     endgenerate
-
+/*
     assign pe_enable[1*X_BUS_SIZE-1:0*X_BUS_SIZE] = x_bus_pe_enable[0];
     assign pe_enable[2*X_BUS_SIZE-1:1*X_BUS_SIZE] = x_bus_pe_enable[1];
     assign pe_enable[3*X_BUS_SIZE-1:2*X_BUS_SIZE] = x_bus_pe_enable[2];
     assign pe_enable[4*X_BUS_SIZE-1:3*X_BUS_SIZE] = x_bus_pe_enable[3];
 
+*/
 
-    assign pe_value[BITWIDTH-1:0] = x_bus_output[0];
+/*
+    assign pe_value[0*X_BUS_SIZE*BITWIDTH +:X_BUS_SIZE*BITWIDTH] = x_bus_output[0];
+    assign pe_value[1*X_BUS_SIZE*BITWIDTH +:X_BUS_SIZE*BITWIDTH] = x_bus_output[1];
+    assign pe_value[2*X_BUS_SIZE*BITWIDTH +:X_BUS_SIZE*BITWIDTH] = x_bus_output[2];
+    assign pe_value[3*X_BUS_SIZE*BITWIDTH +:X_BUS_SIZE*BITWIDTH] = x_bus_output[3];
+*/ 
     // hard-coded way. The flattening way is preffered
     /*
     assign x_bus_pe_ready[0] = pe_ready[X_BUS_SIZE-1:0];
     assign x_bus_pe_ready[1] = pe_ready[2*X_BUS_SIZE-1:X_BUS_SIZE];
     assign x_bus_pe_ready[2] = pe_ready[3*X_BUS_SIZE-1:2*X_BUS_SIZE];
     assign x_bus_pe_ready[3] = pe_ready[4*X_BUS_SIZE-1:3*X_BUS_SIZE];
-    */
 
     // Flatten 2D X-bus signals into 1D input and output signals
     generate
@@ -140,4 +152,5 @@ module gin
             end
         end
     endgenerate
+*/
 endmodule
