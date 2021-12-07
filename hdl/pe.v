@@ -15,8 +15,7 @@ module pe
         input   rstb,           // Active-low reset
         input   ifmap_enable,   // Signal for multicast controller
         input   filter_enable,  // Signal for multicast controller
-//        input   psum_enable,    // Signal for multicast controller
-        output  ready,          // Signal for multicast controller
+        output reg ready,          // Signal for multicast controller
 
         input   signed [BITWIDTH-1:0] ifmap,
         input   signed [BITWIDTH-1:0] filter,
@@ -123,7 +122,7 @@ module pe
     // Select adder input2; either 0 (reset accumulation) or psum_from_fifo
     // Adder inputs are selectable. 1st input is multiplier output or the psum
     // from the lower PE. 2nd input is either the accumulated psum or zero
-    assign adder_input1 = (acc_input_psum == 0) ? multiplier_output : input_psum;
+    assign adder_input1 = (acc_input_psum) ? input_psum : multiplier_output; 
     assign adder_input2 = (acc_reset) ? 'sd0 : psum_from_fifo;
     assign output_psum = acc_output;
 
@@ -141,6 +140,7 @@ module pe
             count               <= 'b0;
             pe_state            <= 'b0;
         end else begin
+
             case (pe_state)
                 LOAD: begin
                     if (count < filter_size) begin
@@ -151,6 +151,7 @@ module pe
                         ifmap_select    <= 'b0;
                         psum_select     <= 'b0;
                         psum_enable     <= 'b1;
+                        ready           <= 'b1;
                         pe_state        <= LOAD;
                     end else begin
                         count       <= 'b0;     // Reset count
@@ -167,8 +168,10 @@ module pe
                         ifmap_select    <= ifmap_select + 'b1;
                         psum_select     <= 'b0;
                         psum_enable     <= 'b1;
+                        ready           <= 'b0;
                         pe_state        <= MAC;
                     end else begin
+                        acc_input_psum  <= 'b1;
                         count       <= 'b0;     // Reset count
                         pe_state    <= ACC;     // Go to LOAD state
                     end
@@ -183,10 +186,12 @@ module pe
                         ifmap_select    <= 'b0;
                         psum_select     <= 'b0;
                         psum_enable     <= 'b1;
+                        ready           <= 'b0;
                         pe_state        <= ACC;
                     end else begin
-                        count       <= 'b0;     // Reset count
-                        pe_state    <= LOAD;     // Go to LOAD state
+                        acc_input_psum  <= 'b0;
+                        count           <= 'b0;     // Reset count
+                        pe_state        <= LOAD;     // Go to LOAD state
                     end
                 end
                 default: begin

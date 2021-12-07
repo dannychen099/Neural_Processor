@@ -10,7 +10,6 @@ module tb;
     reg                         enable;
     reg                         ifmap_enable;
     reg                         filter_enable;
-//    reg                         psum_enable;
     wire                        ready;
 
     reg  signed [BITWIDTH-1:0]  filter;
@@ -29,7 +28,6 @@ module tb;
         .rstb           (rstb),
         .ifmap_enable   (ifmap_enable),
         .filter_enable  (filter_enable),
-//        .psum_enable    (psum_enable),
         .ready          (ready),
         .ifmap          (ifmap),
         .filter         (filter),
@@ -87,7 +85,7 @@ module tb;
                 tb_pe.mac_accumulator.operand_a, 
                 tb_pe.mac_accumulator.operand_b,
                 tb_pe.mac_accumulator.result,
-                "\n");
+                "input_psum = %5d",  tb_pe.input_psum);
         end
     endtask
     
@@ -98,7 +96,6 @@ module tb;
         rstb            <= 'b0;         // Begin reset
         ifmap_enable    <= 'b0;
         filter_enable   <= 'b0;
-//        psum_enable     <= 'b0;
         filter          <= 'sd0;
         ifmap           <= 'sd0;
         input_psum      <= 'sd0;
@@ -112,6 +109,7 @@ module tb;
         //  Load filter and ifmap weights
         //---------------------------------------------------------------------
 
+        // Row 1 Cycle 1 values
         filter_enable   <= 'b1;     // filter 1
         filter          <= 'sd1;
         repeat (1) @(posedge clk);
@@ -120,6 +118,7 @@ module tb;
         #1 display_rf_mem;
         display_control;
         
+        // Row 1 Cycle 2 values
         ifmap_enable    <= 'b1;     // ifmap 1
         ifmap           <= 'sd1;    
         repeat (1) @(posedge clk);
@@ -129,6 +128,7 @@ module tb;
         display_control;
        
         
+        // Row 1 Cycle 3 values
         filter_enable   <= 'b1;     // filter 2
         filter          <= 'sd2;
         repeat (1) @(posedge clk);
@@ -166,19 +166,20 @@ module tb;
 
         $display("PE Calculating MAC...\n");
         for (i = 0; i < 3; i = i + 1) begin
-            repeat(1) @(posedge clk);
-            display_control;
+            input_psum = (i+1)*10;
+            #1 display_control;
             display_rf_mem;
             display_mac;
-            $display(tb_pe.acc_reset);
+            repeat(1) @(posedge clk);
         end
 
         $display("PE Accumulating Column...\n");
         for (i = 0; i < 2; i = i + 1) begin
-            display_control;
+            input_psum = (i+4)*10;
+            repeat(1) @(posedge clk);
+            #1 display_control;
             display_rf_mem;
             display_mac;
-            repeat(1) @(posedge clk);
         end
         $finish;
     end
