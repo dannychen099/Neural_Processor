@@ -7,7 +7,9 @@ module pe
     (
         input   clk,            // Clock input
         input   rstb,           // Active-low reset
-        input   enable,         // Signal for multicast controller
+        input   ifmap_enable,   // Signal for multicast controller
+        input   filter_enable,  // Signal for multicast controller
+        input   psum_enable,    // Signal for multicast controller
         input [2:0] control,
         output  ready,          // Signal for multicast controller
 

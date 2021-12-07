@@ -4,7 +4,7 @@ module gin
 #(
     parameter BITWIDTH          = 16,
     parameter TAG_LENGTH        = 4,
-    parameter NUM_CONTROLLERS   = 10,
+    parameter NUM_CONTROLLERS   = 4,
     parameter Y_BUS_SIZE      = NUM_CONTROLLERS,
     parameter X_BUS_SIZE      = NUM_CONTROLLERS,
     parameter Y_PACKET_LENGTH   = 2*TAG_LENGTH + BITWIDTH,
