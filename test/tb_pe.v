@@ -7,17 +7,27 @@ module tb;
     
     reg                         clk;
     reg                         rstb;
-    reg                         ifmap_enable;
-    reg                         filter_enable;
-    wire                        ready;
-
-    reg  signed [BITWIDTH-1:0]  filter;
-    reg  signed [BITWIDTH-1:0]  ifmap;
-    //reg  signed [BITWIDTH-1:0]  input_psum;
-    
+    reg                         ifmap_enable1;
+    reg                         filter_enable1;
+    wire                        ready1;
+    reg  signed [BITWIDTH-1:0]  filter1;
+    reg  signed [BITWIDTH-1:0]  ifmap1;
     wire signed [BITWIDTH-1:0]  output_psum1;
+
+    reg                         ifmap_enable2;
+    reg                         filter_enable2;
+    wire                        ready2;
+    reg  signed [BITWIDTH-1:0]  filter2;
+    reg  signed [BITWIDTH-1:0]  ifmap2;
     wire signed [BITWIDTH-1:0]  output_psum2;
+    
+    reg                         ifmap_enable3;
+    reg                         filter_enable3;
+    wire                        ready3;
+    reg  signed [BITWIDTH-1:0]  filter3;
+    reg  signed [BITWIDTH-1:0]  ifmap3;
     wire signed [BITWIDTH-1:0]  output_psum3;
+
     reg  signed [BITWIDTH-1:0]  output_psum4;
 
     pe #(
@@ -27,11 +37,11 @@ module tb;
     tb_pe1( 
         .clk            (clk),
         .rstb           (rstb),
-        .ifmap_enable   (ifmap_enable),
-        .filter_enable  (filter_enable),
-        .ready          (ready),
-        .ifmap          (ifmap),
-        .filter         (filter),
+        .ifmap_enable   (ifmap_enable1),
+        .filter_enable  (filter_enable1),
+        .ready          (ready1),
+        .ifmap          (ifmap1),
+        .filter         (filter1),
         .input_psum     (output_psum2),
         .output_psum    (output_psum1)
     );
@@ -43,11 +53,11 @@ module tb;
     tb_pe2( 
         .clk            (clk),
         .rstb           (rstb),
-        .ifmap_enable   (ifmap_enable),
-        .filter_enable  (filter_enable),
-        .ready          (ready),
-        .ifmap          (ifmap),
-        .filter         (filter),
+        .ifmap_enable   (ifmap_enable2),
+        .filter_enable  (filter_enable2),
+        .ready          (ready2),
+        .ifmap          (ifmap2),
+        .filter         (filter2),
         .input_psum     (output_psum3),
         .output_psum    (output_psum2)
     );
@@ -60,11 +70,11 @@ module tb;
     tb_pe3( 
         .clk            (clk),
         .rstb           (rstb),
-        .ifmap_enable   (ifmap_enable),
-        .filter_enable  (filter_enable),
-        .ready          (ready),
-        .ifmap          (ifmap),
-        .filter         (filter),
+        .ifmap_enable   (ifmap_enable3),
+        .filter_enable  (filter_enable3),
+        .ready          (ready3),
+        .ifmap          (ifmap3),
+        .filter         (filter3),
         .input_psum     (output_psum4),
         .output_psum    (output_psum3)
     );
@@ -127,10 +137,22 @@ module tb;
         // Initialize everything to zero
         clk             <= 'b0;         // Start clock
         rstb            <= 'b0;         // Begin reset
-        ifmap_enable    <= 'b0;
-        filter_enable   <= 'b0;
-        filter          <= 'sd0;
-        ifmap           <= 'sd0;
+
+        ifmap_enable1    <= 'b0;
+        filter_enable1   <= 'b0;
+        filter1          <= 'sd0;
+        ifmap1           <= 'sd0;
+
+        ifmap_enable2    <= 'b0;
+        filter_enable2   <= 'b0;
+        filter2          <= 'sd0;
+        ifmap2           <= 'sd0;
+        
+        ifmap_enable3    <= 'b0;
+        filter_enable3   <= 'b0;
+        filter3          <= 'sd0;
+        ifmap3           <= 'sd0;
+        
         output_psum4    <= 'sd0;
         repeat (1) @(posedge clk);
         
@@ -142,59 +164,100 @@ module tb;
         //  Load filter and ifmap weights
         //---------------------------------------------------------------------
 
-        // Row 1 Cycle 1 values
-        filter_enable   <= 'b1;     // filter 1
-        filter          <= 'sd1;
+        // Cycle 1 filter values
+        filter_enable1  <= 'b1;    // filter 1 col 1,2,3
+        filter_enable2  <= 'b1;
+        filter_enable3  <= 'b1;
+        filter1         <= 'sd1;
+        filter2         <= 'sd4;
+        filter3         <= 'sd7;
         repeat (1) @(posedge clk);
-        filter_enable   <= 'b0;
-        $display("Loading filter1 %5d", filter);
+        filter_enable1  <= 'b0;
+        filter_enable2  <= 'b0;
+        filter_enable3  <= 'b0;
+        $display("Loading filter1 %5d %5d %5d", filter1, filter2, filter3);
         #1 display_rf_mem;
         display_control;
         
-        // Row 1 Cycle 2 values
-        ifmap_enable    <= 'b1;     // ifmap 1
-        ifmap           <= 'sd1;    
+        // Cycle 1 ifmap values
+        ifmap_enable1   <= 'b1;     // ifmap 1 col 1,2,3
+        ifmap_enable2   <= 'b1;
+        ifmap_enable3   <= 'b1;
+        ifmap1          <= 'sd5;    
+        ifmap2          <= 'sd8;    
+        ifmap3          <= 'sd11;    
         repeat (1) @(posedge clk);
-        ifmap_enable    <= 'b0;
-        $display("Loading ifmap1 %5d", ifmap);
+        ifmap_enable1   <= 'b0;
+        ifmap_enable2   <= 'b0;
+        ifmap_enable3   <= 'b0;
+        $display("Loading ifmap1 %5d %5d %5d", ifmap1, ifmap2, ifmap3);
         #1 display_rf_mem;
         display_control;
        
         
-        // Row 1 Cycle 3 values
-        filter_enable   <= 'b1;     // filter 2
-        filter          <= 'sd2;
+        // Cycle 2 filter values
+        filter_enable1  <= 'b1;    // filter 1 row 1,2,3
+        filter_enable2  <= 'b1;
+        filter_enable3  <= 'b1;
+        filter1         <= 'sd2;
+        filter2         <= 'sd5;
+        filter3         <= 'sd8;
         repeat (1) @(posedge clk);
-        filter_enable   <= 'b0;
-        $display("Loading filter2 %5d", filter);
+        filter_enable1  <= 'b0;
+        filter_enable2  <= 'b0;
+        filter_enable3  <= 'b0;
+        $display("Loading filter1 %5d %5d %5d", filter1, filter2, filter3);
         #1 display_rf_mem;
         display_control;
         
-        ifmap_enable    <= 'b1;     // ifmap 2
-        ifmap           <= 'sd2;
+        // Cycle 2 ifmap values
+        ifmap_enable1   <= 'b1;     // ifmap 1 row 1,2,3
+        ifmap_enable2   <= 'b1;
+        ifmap_enable3   <= 'b1;
+        ifmap1          <= 'sd6;    
+        ifmap2          <= 'sd9;    
+        ifmap3          <= 'sd12;    
         repeat (1) @(posedge clk);
-        ifmap_enable    <= 'b0;
-        $display("Loading ifmap2 %5d", ifmap);
+        ifmap_enable1   <= 'b0;
+        ifmap_enable2   <= 'b0;
+        ifmap_enable3   <= 'b0;
+        $display("Loading ifmap1 %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+        #1 display_rf_mem;
+        display_control;
+       
+        
+        // Cycle 3 filter values
+        filter_enable1  <= 'b1;    // filter 1 col 1,2,3
+        filter_enable2  <= 'b1;
+        filter_enable3  <= 'b1;
+        filter1         <= 'sd3;
+        filter2         <= 'sd6;
+        filter3         <= 'sd9;
+        repeat (1) @(posedge clk);
+        filter_enable1  <= 'b0;
+        filter_enable2  <= 'b0;
+        filter_enable3  <= 'b0;
+        $display("Loading filter1 %5d %5d %5d", filter1, filter2, filter3);
+        #1 display_rf_mem;
+        display_control;
+        
+        // Cycle 3 ifmap values
+        ifmap_enable1   <= 'b1;     // ifmap 1 col 1,2,3
+        ifmap_enable2   <= 'b1;
+        ifmap_enable3   <= 'b1;
+        ifmap1          <= 'sd7;    
+        ifmap2          <= 'sd10;    
+        ifmap3          <= 'sd13;    
+        repeat (1) @(posedge clk);
+        ifmap_enable1   <= 'b0;
+        ifmap_enable2   <= 'b0;
+        ifmap_enable3   <= 'b0;
+        $display("Loading ifmap1 %5d %5d %5d", ifmap1, ifmap2, ifmap3);
         #1 display_rf_mem;
         display_control;
 
-        
-        filter_enable   <= 'b1;     // filter 3
-        filter          <= 'sd3;
-        repeat (1) @(posedge clk);
-        filter_enable   <= 'b0;
-        $display("Loading filter3 %5d", filter);
-        #1 display_rf_mem;
-        display_control;
-        
-        ifmap_enable    <= 'b1;     // ifmap 3
-        ifmap           <= 'sd3;
-        repeat (1) @(posedge clk);
-        $display("Loading ifmap3 %5d", ifmap);
-        #1 display_rf_mem;
-        ifmap_enable    <= 'b0;
-        display_control;
-       
+
+
         repeat(1) @(posedge clk);
 
         $display("PE Calculating MAC...\n");

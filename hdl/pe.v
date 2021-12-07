@@ -152,8 +152,8 @@ module pe
                         ready           <= 'b1;
                         pe_state        <= LOAD;
                     end else begin
-                        count       <= 'b0;     // Reset count
-                        pe_state    <= MAC;     // Go to LOAD state
+                        count           <= 'b0;     // Reset count
+                        pe_state        <= MAC;     // Go to LOAD state
                     end
                 end
 
@@ -170,8 +170,8 @@ module pe
                         pe_state        <= MAC;
                     end else begin
                         acc_input_psum  <= 'b1;
-                        count       <= 'b0;     // Reset count
-                        pe_state    <= ACC;     // Go to LOAD state
+                        count           <= 'b0;     // Reset count
+                        pe_state        <= ACC;     // Go to LOAD state
                     end
                 end
 
@@ -187,8 +187,8 @@ module pe
                         ready           <= 'b0;
                         pe_state        <= ACC;
                     end else begin
-                        count       <= 'b0;     // Reset count
-                        pe_state    <= LOAD;     // Go to LOAD state
+                        count           <= 'b0;     // Reset count
+                        pe_state        <= LOAD;     // Go to LOAD state
                     end
                 end
                 default: begin
