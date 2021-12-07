@@ -5,7 +5,6 @@ module pe
         parameter BITWIDTH      = 16,
         parameter RF_ADDR_WIDTH = 3,
         parameter RF_DATA_DEPTH = 2**RF_ADDR_WIDTH,
-        parameter WHEN_TO_ACC_PSUM = 0,
         parameter   LOAD    = 0,
                     MAC     = 1,
                     ACC     = 2
@@ -136,7 +135,6 @@ module pe
             acc_reset           <= 'b1;
             rf_offset           <= 'd4; // 'Bottom' value in RF
             filter_size         <= 'd3; // 'Size' of filter to cycle through
-            final_psum_select   <= WHEN_TO_ACC_PSUM;
             count               <= 'b0;
             pe_state            <= 'b0;
         end else begin
@@ -184,14 +182,13 @@ module pe
                         acc_reset       <= 'b0;
                         filter_select   <= 'b0;
                         ifmap_select    <= 'b0;
-                        psum_select     <= 'b0;
+                        psum_select     <= count + 'b1;
                         psum_enable     <= 'b1;
                         ready           <= 'b0;
                         pe_state        <= ACC;
                     end else begin
-                        acc_input_psum  <= 'b0;
-                        count           <= 'b0;     // Reset count
-                        pe_state        <= LOAD;     // Go to LOAD state
+                        count       <= 'b0;     // Reset count
+                        pe_state    <= LOAD;     // Go to LOAD state
                     end
                 end
                 default: begin

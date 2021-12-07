@@ -7,23 +7,24 @@ module tb;
     
     reg                         clk;
     reg                         rstb;
-    reg                         enable;
     reg                         ifmap_enable;
     reg                         filter_enable;
     wire                        ready;
 
     reg  signed [BITWIDTH-1:0]  filter;
     reg  signed [BITWIDTH-1:0]  ifmap;
-    reg  signed [BITWIDTH-1:0]  input_psum;
+    //reg  signed [BITWIDTH-1:0]  input_psum;
     
-    wire signed [BITWIDTH-1:0]  output_psum;
+    wire signed [BITWIDTH-1:0]  output_psum1;
+    wire signed [BITWIDTH-1:0]  output_psum2;
+    wire signed [BITWIDTH-1:0]  output_psum3;
+    reg  signed [BITWIDTH-1:0]  output_psum4;
 
     pe #(
         .BITWIDTH       (BITWIDTH),
-        .RF_ADDR_WIDTH  (RF_ADDR_WIDTH),
-        .WHEN_TO_ACC_PSUM(5)
+        .RF_ADDR_WIDTH  (RF_ADDR_WIDTH)
     )
-    tb_pe( 
+    tb_pe1( 
         .clk            (clk),
         .rstb           (rstb),
         .ifmap_enable   (ifmap_enable),
@@ -31,10 +32,42 @@ module tb;
         .ready          (ready),
         .ifmap          (ifmap),
         .filter         (filter),
-        .input_psum     (input_psum),
-        .output_psum    (output_psum)
+        .input_psum     (output_psum2),
+        .output_psum    (output_psum1)
     );
 
+    pe #(
+        .BITWIDTH       (BITWIDTH),
+        .RF_ADDR_WIDTH  (RF_ADDR_WIDTH)
+    )
+    tb_pe2( 
+        .clk            (clk),
+        .rstb           (rstb),
+        .ifmap_enable   (ifmap_enable),
+        .filter_enable  (filter_enable),
+        .ready          (ready),
+        .ifmap          (ifmap),
+        .filter         (filter),
+        .input_psum     (output_psum3),
+        .output_psum    (output_psum2)
+    );
+
+    pe #(
+        .BITWIDTH       (BITWIDTH),
+        .RF_ADDR_WIDTH  (RF_ADDR_WIDTH),
+        .WHEN_TO_ACC_PSUM(5)
+    )
+    tb_pe3( 
+        .clk            (clk),
+        .rstb           (rstb),
+        .ifmap_enable   (ifmap_enable),
+        .filter_enable  (filter_enable),
+        .ready          (ready),
+        .ifmap          (ifmap),
+        .filter         (filter),
+        .input_psum     (output_psum4),
+        .output_psum    (output_psum3)
+    );
     integer i;
     
     task display_rf_mem;
@@ -42,21 +75,21 @@ module tb;
             $display("Register File Contents:\n",
                 "filter:\tifmap\tpsum\n",
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[0], tb_pe.ifmap_fifo.memory[0], tb_pe.psum_fifo.memory[0],
+                tb_pe1.filter_fifo.memory[0], tb_pe1.ifmap_fifo.memory[0], tb_pe1.psum_fifo.memory[0],
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[1], tb_pe.ifmap_fifo.memory[1], tb_pe.psum_fifo.memory[1],
+                tb_pe1.filter_fifo.memory[1], tb_pe1.ifmap_fifo.memory[1], tb_pe1.psum_fifo.memory[1],
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[2], tb_pe.ifmap_fifo.memory[2], tb_pe.psum_fifo.memory[2],
+                tb_pe1.filter_fifo.memory[2], tb_pe1.ifmap_fifo.memory[2], tb_pe1.psum_fifo.memory[2],
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[3], tb_pe.ifmap_fifo.memory[3], tb_pe.psum_fifo.memory[3],
+                tb_pe1.filter_fifo.memory[3], tb_pe1.ifmap_fifo.memory[3], tb_pe1.psum_fifo.memory[3],
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[4], tb_pe.ifmap_fifo.memory[4], tb_pe.psum_fifo.memory[4],
+                tb_pe1.filter_fifo.memory[4], tb_pe1.ifmap_fifo.memory[4], tb_pe1.psum_fifo.memory[4],
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[5], tb_pe.ifmap_fifo.memory[5], tb_pe.psum_fifo.memory[5],
+                tb_pe1.filter_fifo.memory[5], tb_pe1.ifmap_fifo.memory[5], tb_pe1.psum_fifo.memory[5],
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[6], tb_pe.ifmap_fifo.memory[6], tb_pe.psum_fifo.memory[6],
+                tb_pe1.filter_fifo.memory[6], tb_pe1.ifmap_fifo.memory[6], tb_pe1.psum_fifo.memory[6],
                 "%5d %5d %5d\n",
-                tb_pe.filter_fifo.memory[7], tb_pe.ifmap_fifo.memory[7], tb_pe.psum_fifo.memory[7],
+                tb_pe1.filter_fifo.memory[7], tb_pe1.ifmap_fifo.memory[7], tb_pe1.psum_fifo.memory[7],
                 "\n");
         end
     endtask
@@ -65,12 +98,12 @@ module tb;
         begin
             $display("Control Signals:\n",
                 "acc_input_psum = %1b\nacc_reset = %1d\n",
-                tb_pe.acc_input_psum, tb_pe.acc_reset,
+                tb_pe1.acc_input_psum, tb_pe1.acc_reset,
                 "filter_select = %2d\nifmap_select = %2d\npsum_select = %2d\n",
-                tb_pe.filter_select, tb_pe.ifmap_select, tb_pe.psum_select,
+                tb_pe1.filter_select, tb_pe1.ifmap_select, tb_pe1.psum_select,
                 "filter_from_fifo = %5d\nifmap_from_fifo = %5d\npsum_from_fifo = %5d\n",
-                tb_pe.filter_from_fifo, tb_pe.ifmap_from_fifo, tb_pe.psum_from_fifo,
-                "pe_state = %1d\ncount = %1d\n", tb_pe.pe_state, tb_pe.count);
+                tb_pe1.filter_from_fifo, tb_pe1.ifmap_from_fifo, tb_pe1.psum_from_fifo,
+                "pe_state = %1d\ncount = %1d\n", tb_pe1.pe_state, tb_pe1.count);
         end
     endtask
 
@@ -78,14 +111,14 @@ module tb;
         begin
             $display("MAC contents\n",
                 "%5d * %5d = %5d\n",
-                tb_pe.mac_multiplier.operand_a,
-                tb_pe.mac_multiplier.operand_b,
-                tb_pe.mac_multiplier.result,
+                tb_pe1.mac_multiplier.operand_a,
+                tb_pe1.mac_multiplier.operand_b,
+                tb_pe1.mac_multiplier.result,
                 "%5d + %5d = %5d\n",
-                tb_pe.mac_accumulator.operand_a, 
-                tb_pe.mac_accumulator.operand_b,
-                tb_pe.mac_accumulator.result,
-                "input_psum = %5d",  tb_pe.input_psum);
+                tb_pe1.mac_accumulator.operand_a, 
+                tb_pe1.mac_accumulator.operand_b,
+                tb_pe1.mac_accumulator.result,
+                "input_psum = %5d\n",  tb_pe1.input_psum);
         end
     endtask
     
@@ -98,7 +131,7 @@ module tb;
         filter_enable   <= 'b0;
         filter          <= 'sd0;
         ifmap           <= 'sd0;
-        input_psum      <= 'sd0;
+        output_psum4    <= 'sd0;
         repeat (1) @(posedge clk);
         
         rstb            <= 'b1;         // Stop reset
@@ -166,7 +199,6 @@ module tb;
 
         $display("PE Calculating MAC...\n");
         for (i = 0; i < 3; i = i + 1) begin
-            input_psum = (i+1)*10;
             #1 display_control;
             display_rf_mem;
             display_mac;
@@ -175,7 +207,6 @@ module tb;
 
         $display("PE Accumulating Column...\n");
         for (i = 0; i < 2; i = i + 1) begin
-            input_psum = (i+4)*10;
             repeat(1) @(posedge clk);
             #1 display_control;
             display_rf_mem;
