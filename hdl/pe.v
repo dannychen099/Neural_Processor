@@ -41,7 +41,6 @@ module pe
     reg                                 acc_reset;
 
     // Control information
-    reg         [RF_ADDR_WIDTH-1:0]     rf_offset;
     reg         [RF_ADDR_WIDTH-1:0]     filter_size;
     reg         [RF_ADDR_WIDTH-1:0]     final_psum_select;
     reg         [RF_ADDR_WIDTH-1:0]     count;
@@ -133,7 +132,6 @@ module pe
             psum_enable         <= 'b0;
             acc_input_psum      <= 'b0;
             acc_reset           <= 'b1;
-            rf_offset           <= 'd4; // 'Bottom' value in RF
             filter_size         <= 'd3; // 'Size' of filter to cycle through
             count               <= 'b0;
             pe_state            <= 'b0;
@@ -187,7 +185,7 @@ module pe
                         ready           <= 'b0;
                         pe_state        <= ACC;
                     end else begin
-                        count           <= 'b0;     // Reset count
+                        count           <= 'b0;
                         pe_state        <= LOAD;     // Go to LOAD state
                     end
                 end

@@ -257,7 +257,6 @@ module tb;
         display_control;
 
 
-
         repeat(1) @(posedge clk);
 
         $display("PE Calculating MAC...\n");
@@ -275,6 +274,8 @@ module tb;
             display_rf_mem;
             display_mac;
         end
+
+        $display("Output psum: %5d", output_psum1);
         $finish;
     end
 endmodule
