@@ -13,6 +13,7 @@ module tb;
 
     reg                                     clk;
     reg                                     rstb;
+    reg                                     pe_reset;
     wire        [PACKET_LENGTH-1:0]         data_packet_ifmap;
     wire        [PACKET_LENGTH-1:0]         data_packet_filter;
     reg  signed [BITWIDTH-1:0]              ifmap;
@@ -104,7 +105,8 @@ module tb;
         .gin_enable_ifmap             (gin_enable_ifmap),
         .gin_enable_filter            (gin_enable_filter),
         .ready              (ready),
-        .program            (program)
+        .program            (program),
+        .pe_reset           (pe_reset)
     );
     
     genvar k;
@@ -275,6 +277,7 @@ module tb;
 
         clk         <= 'b0;
         rstb        <= 'b0;
+        pe_reset    <= 'b0;
         ifmap_row   <= 'b0;
         ifmap_col   <= 'b0;
         filter_row  <= 'b0;
@@ -287,6 +290,7 @@ module tb;
 
         repeat (1) @(posedge clk);
         rstb        <= 'b1;
+        pe_reset    <= 'b1;
 
         repeat (1) @(posedge clk);
 
@@ -311,7 +315,6 @@ module tb;
         display_gin_filter;
 
         repeat (1) @(posedge clk);
-
         
         //---------------------------------------------------------------------
         //  Load 1st cycle
@@ -507,118 +510,206 @@ module tb;
                 tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
                 tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
         end
+
+        pe_reset    <= 'b0;
+        repeat(1) @(posedge clk);
+        pe_reset    <= 'b1;
+        repeat(1) @(posedge clk);
+
+        //---------------------------------------------------------------------
+        //  Load 1st cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter      <= 'b1;
+        gin_enable_ifmap      <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd0;
+        filter      <= 'sd0;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd1;
+        repeat (1) @(posedge clk);
+        #1 display_input(filter, ifmap);
+        pe_diag;
+        display_pe_memory;
+        //gin_diag;
+
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd0;
+        filter      <= 'sd1;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd2;
+        repeat (1) @(posedge clk);
+        #1 display_input(filter, ifmap);
+        pe_diag;
+        display_pe_memory;
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd0;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd3;
+        repeat (1) @(posedge clk);
+        #1 display_input(filter, ifmap);
+        gin_enable_filter <= 'b0;
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+        display_input('bz, ifmap);
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd5;
+        repeat (1) @(posedge clk);
+        gin_enable_ifmap    <= 'b0;
+        display_input('bz, ifmap);
+        pe_diag;
+        display_pe_memory;
+
+
+        //---------------------------------------------------------------------
+        //  Load 2nd cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter      <= 'b1;
+        gin_enable_ifmap      <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd1;
+        filter      <= 'sd1;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd2;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+        
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd1;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd3;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd1;
+        filter      <= 'sd3;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd4;
+        display_input(filter, ifmap);
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_filter <= 'b0;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd5;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd6;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_ifmap    <= 'b0;
+        display_pe_memory;
+
+        
+        //---------------------------------------------------------------------
+        //  Load 3rd cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter   <= 'b1;
+        gin_enable_ifmap     <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd2;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd3;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+        
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd2;
+        filter      <= 'sd3;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd2;
+        filter      <= 'sd4;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd5;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_filter <= 'b0;
+        display_pe_memory;
+        
+        $display("--- NOTE ---\nChange state on next cycle\n");
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd6;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd7;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_ifmap    <= 'b0;
+        display_pe_memory;
+
+        // Takes 3 clock cycles to calculate a single row
+        repeat(3) @(posedge clk) pe_diag;
+
+        // Display the 1st row results
+        $display("ofmap: %5d %5d %5d",
+            tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
+            tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
+            tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
+
+        repeat(2) @(posedge clk) begin
+            pe_diag;
+            $display("ofmap: %5d %5d %5d",
+                tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
+                tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
+                tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
+        end
+
+
         $finish;
     end
 
 endmodule
-
-
-/*
-        // Send filter row 1 
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd1;    // filter(1,0)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd2;    // filter(1,1)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd3;    // filter(1,2)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
-        
-        // Send filter row 2 
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd2;    // filter(2,0)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd3;    // filter(2,1)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd4;    // filter(2,2)
-        repeat (1) @(posedge clk);
-        pe_diag;
-        */
-
-/*
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd0;
-        ifmap       <= 'sd1;    // ifmap(0,1)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd1;
-        ifmap       <= 'sd2;    // ifmap(0,2)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd2;
-        ifmap       <= 'sd3;    // ifmap(0,3)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd0;
-        ifmap       <= 'sd2;    // ifmap(0,2)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd1;
-        ifmap       <= 'sd3;    // ifmap(0,3)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd2;
-        ifmap       <= 'sd4;    // ifmap(0,4)
-        repeat (1) @(posedge clk);
-*/
-
-        /*
-
-        // Send ifmap row 1
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd3;
-        ifmap       <= 'sd3;    // ifmap(1,0)
-        repeat (1) @(posedge clk);
-
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd4;
-        ifmap       <= 'sd4;    // ifmap(1,1)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd5;
-        ifmap       <= 'sd5;    // ifmap(1,2)
-        repeat (1) @(posedge clk);
-
-        
-        // Send ifmap row 2 
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd0;
-        ifmap       <= 'sd2;    // ifmap(2,0)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd0;
-        ifmap       <= 'sd3;    // ifmap(2,1)
-        repeat (1) @(posedge clk);
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd0;
-        ifmap       <= 'sd4;    // ifmap(2,2)
-        repeat (1) @(posedge clk);
-        */

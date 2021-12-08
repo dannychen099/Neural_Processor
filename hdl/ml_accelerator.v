@@ -35,7 +35,8 @@ module ml_accelerator
         output                              ready,
         input                               program,
         input                               gin_enable_filter,
-        input                               gin_enable_ifmap
+        input                               gin_enable_ifmap,
+        input                               pe_reset
 
     );
 
@@ -86,9 +87,10 @@ module ml_accelerator
     wire [BITWIDTH*NUM_PE-1:0]  pe_psum;
         // Last PE_X_SIZE values on bottom are unused:
     wire [BITWIDTH*(NUM_PE+PE_X_SIZE)-1:0] pe_bottom_psum;    
-
+    wire                        pe_reset_signal;
 
     assign ready = gin_ready_filter & gin_ready_ifmap;
+    assign pe_reset_signal = rstb & pe_reset; // Active low
     
     //-------------------------------------------------------------------------
     //  Ifmap GLB register and GIN
@@ -184,7 +186,7 @@ module ml_accelerator
                 pe_unit
                 (
                     .clk            (clk),
-                    .rstb           (rstb),
+                    .rstb           (pe_reset),
                     .ifmap_enable   (pe_enable_ifmap[i*PE_X_SIZE+j]),
                     .filter_enable  (pe_enable_filter[i*PE_X_SIZE+j]),
                     .ifmap          (pe_value_ifmap[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
