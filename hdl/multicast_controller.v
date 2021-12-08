@@ -17,7 +17,7 @@ module multicast_controller
     input                           controller_enable,  // Enable the controller
     output wire                     controller_ready,   // Pass target_ready out
     input       [ADDRESS_WIDTH-1:0] tag,                // Address tag
-    input       [BITWIDTH-1:0]      input_value,        // Allow bidir data
+    input       [BITWIDTH-1:0]      input_value,
     // Ports on outgoing data side (to PE or other bus)
     output wire                     target_enable,      // Enable the target
     input                           target_ready,       // Target state

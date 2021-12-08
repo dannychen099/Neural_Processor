@@ -33,7 +33,10 @@ module ml_accelerator
         input  [TAG_LENGTH-1:0]             scan_chain_output_filter,
         input                               enable,
         output                              ready,
-        input                               program
+        input                               program,
+        input                               gin_enable_filter,
+        input                               gin_enable_ifmap
+
     );
 
     genvar i;
@@ -46,7 +49,7 @@ module ml_accelerator
     // Ifmap connections
     //wire [TAG_LENGTH-1:0]       scan_chain_input_ifmap;
     //wire [TAG_LENGTH-1:0]       scan_chain_output_ifmap;
-    wire                        gin_enable_ifmap;
+    //wire                        gin_enable_ifmap; // Used as input for now
     wire                        gin_ready_ifmap;
     //wire [PACKET_LENGTH-1:0]    data_packet_ifmap; // Used as input for now
     wire [NUM_PE-1:0]           pe_enable_ifmap;
@@ -63,10 +66,10 @@ module ml_accelerator
     // Filter connections
     //wire [TAG_LENGTH-1:0]       scan_chain_input_filter;
     //wire [TAG_LENGTH-1:0]       scan_chain_output_filter;
-    wire                        gin_enable_filter;
+    //wire                        gin_enable_filter;
     wire                        gin_ready_filter;
     //wire [PACKET_LENGTH-1:0]    data_packet_filter; // Used as input for now
-    wire [NUM_PE-1:0]           pe_enable_filter;
+    wire [NUM_PE-1:0]           pe_enable_filter; // Used as input for now
     wire [NUM_PE-1:0]           pe_ready_filter;
     wire [BITWIDTH*NUM_PE-1:0]  pe_value_filter;
     
@@ -86,8 +89,6 @@ module ml_accelerator
 
 
     assign ready = gin_ready_filter & gin_ready_ifmap;
-    assign gin_enable_ifmap = enable;
-    assign gin_enable_filter = enable;
     
     //-------------------------------------------------------------------------
     //  Ifmap GLB register and GIN
@@ -188,9 +189,9 @@ module ml_accelerator
                     .filter_enable  (pe_enable_filter[i*PE_X_SIZE+j]),
                     .ifmap          (pe_value_ifmap[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
                     .filter         (pe_value_filter[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
-                    .input_psum     (pe_bottom_psum[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
-                    .ready          (pe_ready[i]),
-                    .output_psum    (pe_bottom_psum[((i+1)*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH])
+                    .input_psum     (pe_bottom_psum[((i+1)*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
+                    .ready          (pe_ready[i*PE_X_SIZE+j]),
+                    .output_psum    (pe_bottom_psum[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH])
                 );
             end
         end
@@ -201,7 +202,7 @@ module ml_accelerator
     // Assign the top psum outputs to the output ports for now
     generate
         for (i = 0; i < PE_X_SIZE; i = i + 1) begin
-            assign ofmap[i*BITWIDTH +: BITWIDTH] = pe_bottom_psum[i*PE_X_SIZE*BITWIDTH +: BITWIDTH];
+            //assign ofmap[i*BITWIDTH +: BITWIDTH] = pe_bottom_psum[i*PE_X_SIZE*BITWIDTH +: BITWIDTH];
         end
     endgenerate
 

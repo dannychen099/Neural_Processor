@@ -29,7 +29,8 @@ module tb;
     wire [TAG_LENGTH-1:0]             scan_chain_output_filter;
 
     reg                     program;
-    reg                     enable;
+    reg                     gin_enable_ifmap;
+    reg                     gin_enable_filter;
     wire                    ready;
 
     wire [TAG_LENGTH-1:0]   ifmap_scan  [0:NUM_PE+PE_X_SIZE-1];
@@ -100,7 +101,8 @@ module tb;
         .scan_chain_output_ifmap(scan_chain_output_ifmap),
         .scan_chain_input_filter(scan_chain_input_filter),
         .scan_chain_output_filter(scan_chain_output_filter),
-        .enable             (enable),
+        .gin_enable_ifmap             (gin_enable_ifmap),
+        .gin_enable_filter            (gin_enable_filter),
         .ready              (ready),
         .program            (program)
     );
@@ -123,11 +125,11 @@ module tb;
                 tb_dut.gin_filter.y_bus.mc_vector[0].mc.tag,
                 tb_dut.gin_filter.y_bus.mc_vector[0].mc.target_enable);
             $display("PE target_enable = %b & %b & (%b == %b) : %b",
-                tb_dut.gin_filter.x_bus_vector[0].x_bus.mc_vector[0].mc.controller_enable,
-                tb_dut.gin_filter.x_bus_vector[0].x_bus.mc_vector[0].mc.target_ready,
-                tb_dut.gin_filter.x_bus_vector[0].x_bus.mc_vector[0].mc.tag_id_reg,
-                tb_dut.gin_filter.x_bus_vector[0].x_bus.mc_vector[0].mc.tag,
-                tb_dut.gin_filter.x_bus_vector[0].x_bus.mc_vector[0].mc.target_enable);
+                tb_dut.gin_filter.x_bus_vector[1].x_bus.mc_vector[0].mc.controller_enable,
+                tb_dut.gin_filter.x_bus_vector[1].x_bus.mc_vector[0].mc.target_ready,
+                tb_dut.gin_filter.x_bus_vector[1].x_bus.mc_vector[0].mc.tag_id_reg,
+                tb_dut.gin_filter.x_bus_vector[1].x_bus.mc_vector[0].mc.tag,
+                tb_dut.gin_filter.x_bus_vector[1].x_bus.mc_vector[0].mc.target_enable);
 
             $display("y_bus_output:%b", tb_dut.gin_filter.y_bus.output_value);
             $display("x_data_packet[0]:%b", tb_dut.gin_filter.x_data_packet[0]);
@@ -151,17 +153,28 @@ module tb;
 
     task display_pe_memory;
         begin
-            $display(tb_dut.pe_row[0].pe_col[0].pe_unit.filter_fifo.memory[0]);
-            $display(tb_dut.pe_row[0].pe_col[1].pe_unit.filter_fifo.memory[0]);
-            $display(tb_dut.pe_row[0].pe_col[2].pe_unit.filter_fifo.memory[0]);
-
-            $display(tb_dut.pe_row[1].pe_col[0].pe_unit.filter_fifo.memory[0]);
-            $display(tb_dut.pe_row[1].pe_col[1].pe_unit.filter_fifo.memory[0]);
-            $display(tb_dut.pe_row[1].pe_col[2].pe_unit.filter_fifo.memory[0]);
-            
-            $display(tb_dut.pe_row[2].pe_col[0].pe_unit.filter_fifo.memory[0]);
-            $display(tb_dut.pe_row[2].pe_col[1].pe_unit.filter_fifo.memory[0]);
-            $display(tb_dut.pe_row[2].pe_col[2].pe_unit.filter_fifo.memory[0]);
+            $display(
+                "%5d %5d %5d\t%5d %5d %5d\n",
+                tb_dut.pe_row[0].pe_col[0].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[0].pe_col[1].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[0].pe_col[2].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[0].pe_col[0].pe_unit.ifmap_fifo.memory[0],
+                tb_dut.pe_row[0].pe_col[1].pe_unit.ifmap_fifo.memory[0],
+                tb_dut.pe_row[0].pe_col[2].pe_unit.ifmap_fifo.memory[0],
+                "%5d %5d %5d\t%5d %5d %5d\n",
+                tb_dut.pe_row[1].pe_col[0].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[1].pe_col[1].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[1].pe_col[2].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[1].pe_col[0].pe_unit.ifmap_fifo.memory[0],
+                tb_dut.pe_row[1].pe_col[1].pe_unit.ifmap_fifo.memory[0],
+                tb_dut.pe_row[1].pe_col[2].pe_unit.ifmap_fifo.memory[0],
+                "%5d %5d %5d\t%5d %5d %5d\n",
+                tb_dut.pe_row[2].pe_col[0].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[2].pe_col[1].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[2].pe_col[2].pe_unit.filter_fifo.memory[0],
+                tb_dut.pe_row[2].pe_col[0].pe_unit.ifmap_fifo.memory[0],
+                tb_dut.pe_row[2].pe_col[1].pe_unit.ifmap_fifo.memory[0],
+                tb_dut.pe_row[2].pe_col[2].pe_unit.ifmap_fifo.memory[0]);
         end
     endtask
 
@@ -204,20 +217,34 @@ module tb;
     task gin_diag;
         begin
             $display("Top Level GIN:");
-            $display("\tfilter");
-            $display("\t\tenable: %1b, ready: %1b", tb_dut.gin_filter.gin_enable, tb_dut.gin_filter.gin_ready);
-            $display("\t\tdata_packet %24b", tb_dut.gin_filter.data_packet);
-            $display("\tifmap:");
-            $display("\t\tenable: %1b, ready: %1b", tb_dut.gin_ifmap.gin_enable, tb_dut.gin_ifmap.gin_ready);
-            $display("\t\tdata_packet %24b", tb_dut.gin_ifmap.data_packet);
+            $display("\tfilter\n\t\tenable: %1b, ready: %1b\n\t\tdata_packet %24b",
+                tb_dut.gin_filter.gin_enable,
+                tb_dut.gin_filter.gin_ready,
+                tb_dut.gin_filter.data_packet,
+                "\n\tifmap\n\t\tenable: %1b, ready: %1b\n\t\tdata_packet %24b",
+                tb_dut.gin_ifmap.gin_enable,
+                tb_dut.gin_ifmap.gin_ready,
+                tb_dut.gin_ifmap.data_packet);
             
-            $display("At Y-bus bus:");
-            $display("enable: %1b, ready: %1b", tb_dut.gin_filter.y_bus.bus_enable, tb_dut.gin_filter.y_bus.bus_ready);
-            $display("data_packet %20b", tb_dut.gin_filter.y_bus.data_source);
+            $display("Y-bus:");
+            $display("\tfilter\n\t\tenable: %1b, ready: %1b\n\t\tdata_packet %24b",
+                tb_dut.gin_filter.y_bus.bus_enable,
+                tb_dut.gin_filter.y_bus.bus_ready,
+                tb_dut.gin_filter.y_bus.data_source,
+                "\n\tifmap\n\t\tenable: %1b, ready: %1b\n\t\tdata_packet %24b",
+                tb_dut.gin_ifmap.y_bus.bus_enable,
+                tb_dut.gin_ifmap.y_bus.bus_ready,
+                tb_dut.gin_ifmap.y_bus.data_source);
 
-            $display("At X-bus:");
-            $display("enable: %1b, ready: %1b", tb_dut.gin_filter.x_bus_vector[0].x_bus.bus_enable, tb_dut.gin_filter.x_bus_vector[0].x_bus.bus_ready);
-            $display("data_packet %16d", tb_dut.gin_filter.x_bus_vector[0].x_bus.data_source);
+            $display("X-bus:");
+            $display("\tfilter\n\t\tenable: %1b, ready: %1b\n\t\tdata_packet %24b",
+                tb_dut.gin_filter.x_bus_vector[2].x_bus.bus_enable,
+                tb_dut.gin_filter.x_bus_vector[2].x_bus.bus_ready,
+                tb_dut.gin_filter.x_bus_vector[2].x_bus.data_source,
+                "\n\tifmap\n\t\tenable: %1b, ready: %1b\n\t\tdata_packet %24b",
+                tb_dut.gin_ifmap.x_bus_vector[2].x_bus.bus_enable,
+                tb_dut.gin_ifmap.x_bus_vector[2].x_bus.bus_ready,
+                tb_dut.gin_ifmap.x_bus_vector[2].x_bus.data_source);
         end
     endtask
 
@@ -226,20 +253,17 @@ module tb;
             input   [BITWIDTH-1:0]  filter,
             input   [BITWIDTH-1:0]  ifmap
         );
-        $display("filter = %5d, ifmap = %5d", filter, ifmap);
+        $display("filter=%2d, ifmap=%2d", filter, ifmap);
     endtask
 
     task pe_diag;
         begin
-            
-            $display("filter:%5d ifmap:%5d input_psum:%5d output_psum:%5d state:%1d", 
-                tb_dut.pe_row[0].pe_col[0].pe_unit.filter,
-                tb_dut.pe_row[0].pe_col[0].pe_unit.ifmap,
-                tb_dut.pe_row[0].pe_col[0].pe_unit.input_psum,
-                tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
-                tb_dut.pe_row[0].pe_col[0].pe_unit.pe_state);
-
-            $display("\n");
+            $display("filter:     %5d\nifmap:      %5d\ninput_psum: %5d\noutput_psum:%5d\nstate:     \t%1d\n", 
+                tb_dut.pe_row[1].pe_col[0].pe_unit.filter,
+                tb_dut.pe_row[1].pe_col[0].pe_unit.ifmap,
+                tb_dut.pe_row[1].pe_col[0].pe_unit.input_psum,
+                tb_dut.pe_row[1].pe_col[0].pe_unit.output_psum,
+                tb_dut.pe_row[1].pe_col[0].pe_unit.pe_state);
         end
     endtask
 
@@ -257,7 +281,8 @@ module tb;
         filter_col  <= 'b0;
         ifmap       <= 'sd0;
         filter      <= 'sd0;
-        enable      <= 'b0;
+        gin_enable_filter      <= 'b0;
+        gin_enable_ifmap      <= 'b0;
         program     <= 'b0;
 
         repeat (1) @(posedge clk);
@@ -288,29 +313,207 @@ module tb;
         repeat (1) @(posedge clk);
 
         
+        //---------------------------------------------------------------------
+        //  Load 1st cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter      <= 'b1;
+        gin_enable_ifmap      <= 'b1;
         
-        enable      <= 'b1;
-        // Send filter row 0 
-        filter_row  <= 'd0;
+        filter_row  <= 'd0;     // f11, f12, f13
         filter_col  <= 'd0;
-        filter      <= 'sd10;    // filter(0,0)
-        repeat (1) @(posedge clk);
-        pe_diag;
+        filter      <= 'sd0;
         
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd0;
+        repeat (1) @(posedge clk);
+        #1 display_input(filter, ifmap);
+        pe_diag;
+        display_pe_memory;
+        //gin_diag;
 
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd1;    // filter(0,1)
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd0;
+        filter      <= 'sd1;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd1;
+        repeat (1) @(posedge clk);
+        #1 display_input(filter, ifmap);
+        pe_diag;
+        display_pe_memory;
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd0;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd2;
+        repeat (1) @(posedge clk);
+        #1 display_input(filter, ifmap);
+        gin_enable_filter <= 'b0;
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd3;
+        repeat (1) @(posedge clk);
+        display_input('bz, ifmap);
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+        gin_enable_ifmap    <= 'b0;
+        display_input('bz, ifmap);
+        pe_diag;
+        display_pe_memory;
+
+
+        //---------------------------------------------------------------------
+        //  Load 2nd cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter      <= 'b1;
+        gin_enable_ifmap      <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd1;
+        filter      <= 'sd1;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd1;
         repeat (1) @(posedge clk);
         pe_diag;
-
-        filter_row  <= 'b0;
-        filter_col  <= 'b0;
-        filter      <= 'sd2;    // filter(0,2)
+        display_pe_memory;
+        
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd1;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd2;
         repeat (1) @(posedge clk);
         pe_diag;
+        display_pe_memory;
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd1;
+        filter      <= 'sd3;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd3;
+        display_input(filter, ifmap);
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_filter <= 'b0;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd5;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_ifmap    <= 'b0;
+        display_pe_memory;
+
+        
+        //---------------------------------------------------------------------
+        //  Load 3rd cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter   <= 'b1;
+        gin_enable_ifmap     <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd2;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd2;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+        
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd2;
+        filter      <= 'sd3;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd3;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd2;
+        filter      <= 'sd4;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_filter <= 'b0;
+        display_pe_memory;
+        
+        $display("--- NOTE ---\nChange state on next cycle\n");
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd5;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        display_pe_memory;
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd6;
+        repeat (1) @(posedge clk);
+        pe_diag;
+        gin_enable_ifmap    <= 'b0;
+        display_pe_memory;
+
+        // Takes 3 clock cycles to calculate a single row
+        repeat(3) @(posedge clk) pe_diag;
+
+        // Display the 1st row results
+        $display("ofmap: %5d %5d %5d",
+            tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
+            tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
+            tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
+
+        // The 2nd and 3rd ofmap columns were delayed by 1 clock cycle during
+        // programming, so we need 2 more clock cycles to finish the ofmap
+        // row. Note that more than 2 clock cycles will mess with things
+        repeat(2) @(posedge clk) begin
+            pe_diag;
+            $display("ofmap: %5d %5d %5d",
+                tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
+                tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
+                tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
+        end
+        $finish;
+    end
+
+endmodule
 
 
+/*
         // Send filter row 1 
         filter_row  <= 'b0;
         filter_col  <= 'b0;
@@ -349,27 +552,9 @@ module tb;
         filter      <= 'sd4;    // filter(2,2)
         repeat (1) @(posedge clk);
         pe_diag;
+        */
 
-
-        // Send ifmap row 0, columns 0 - 3
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd0;
-        ifmap       <= 'sd0;    // ifmap(0,0)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd1;
-        ifmap       <= 'sd1;    // ifmap(0,1)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
-        ifmap_row   <= 'd0;
-        ifmap_col   <= 'd2;
-        ifmap       <= 'sd2;    // ifmap(0,2)
-        repeat (1) @(posedge clk);
-        pe_diag;
-
+/*
         ifmap_row   <= 'd0;
         ifmap_col   <= 'd0;
         ifmap       <= 'sd1;    // ifmap(0,1)
@@ -399,7 +584,7 @@ module tb;
         ifmap_col   <= 'd2;
         ifmap       <= 'sd4;    // ifmap(0,4)
         repeat (1) @(posedge clk);
-
+*/
 
         /*
 
@@ -437,12 +622,3 @@ module tb;
         ifmap       <= 'sd4;    // ifmap(2,2)
         repeat (1) @(posedge clk);
         */
-
-        repeat (5) @(posedge clk);
-
-        #1 $display(tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum);
-        $display("ofmap: %5d", ofmap[0*BITWIDTH +: BITWIDTH]);
-        $finish;
-    end
-
-endmodule
