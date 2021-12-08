@@ -18,11 +18,11 @@ module gin
     output [TAG_LENGTH-1:0]         scan_tag_out,
     input                           gin_enable,
     output                          gin_ready,
-    inout  [Y_PACKET_LENGTH-1:0]    data_packet, //2 tags in data, to split
+    input  [Y_PACKET_LENGTH-1:0]    data_packet, //2 tags in data, to split
     // PE connections
     output [X_BUS_SIZE*Y_BUS_SIZE-1:0] pe_enable,
     input  [X_BUS_SIZE*Y_BUS_SIZE-1:0] pe_ready,
-    inout  [(BITWIDTH*X_BUS_SIZE*Y_BUS_SIZE)-1:0] pe_value
+    output [(BITWIDTH*X_BUS_SIZE*Y_BUS_SIZE)-1:0] pe_value
 );
 
     // Y-bus internal connections (single y-bus)
