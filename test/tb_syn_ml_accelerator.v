@@ -314,7 +314,7 @@ module tb;
         // The 2nd and 3rd ofmap columns were delayed by 1 clock cycle during
         // programming, so we need 2 more clock cycles to finish the ofmap
         // row. Note that more than 2 clock cycles will mess with things
-        repeat(2) @(posedge clk);
+        repeat(3) @(posedge clk);
 
         $display("--- FINAL OUTPUT ---\nofmap %5d %5d %5d\n",
             ofmap[0 +: BITWIDTH],
