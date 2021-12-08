@@ -6,7 +6,8 @@
 
 module ml_accelerator(clk, rstb, data_packet_ifmap, data_packet_filter,
      ofmap, scan_chain_input_ifmap, scan_chain_input_filter, ready,
-     program, gin_enable_filter, gin_enable_ifmap, pe_reset);
+     program, gin_enable_filter, gin_enable_ifmap, pe_reset, VDD, VSS);
+  inout VDD, VSS;
   input clk, rstb, program, gin_enable_filter, gin_enable_ifmap,
        pe_reset;
   input [23:0] data_packet_ifmap, data_packet_filter;
