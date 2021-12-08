@@ -1,5 +1,22 @@
 `timescale 1ns/10ps
 
+//-----------------------------------------------------------------------------
+//  Test bench module for a PE. This simulates a vertical column of PEs (1x3
+//  vector). That way, each bottom calculate psum can be passed to the PE
+//  above for accumulation.
+//
+//  This particular test bench simulates a RS data flow for a 3 column filter 
+//  and a 6 column ifmap. Viewed as a matrix, the relevant data is calculated:
+//
+//                  0 1 2 3 4 5 6
+//      0 1 2       1 2 3 4 5 6 7       48  66  84 102 120
+//      1 2 3   *   2 3 4 5 6 7 8   =   X   X   X   X   X
+//      2 3 4       X X X X X X X       X   X   X   X   X
+//                  X X X X X X X
+//
+//  Note that this simulation only calculates the *first row*.
+//-----------------------------------------------------------------------------
+
 module tb;
     parameter BITWIDTH      = 16;
     parameter RF_ADDR_WIDTH = 3;
@@ -64,8 +81,7 @@ module tb;
 
     pe #(
         .BITWIDTH       (BITWIDTH),
-        .RF_ADDR_WIDTH  (RF_ADDR_WIDTH),
-        .WHEN_TO_ACC_PSUM(5)
+        .RF_ADDR_WIDTH  (RF_ADDR_WIDTH)
     )
     tb_pe3( 
         .clk            (clk),
@@ -168,114 +184,267 @@ module tb;
         filter_enable1  <= 'b1;    // filter 1 col 1,2,3
         filter_enable2  <= 'b1;
         filter_enable3  <= 'b1;
-        filter1         <= 'sd1;
-        filter2         <= 'sd4;
-        filter3         <= 'sd7;
+        filter1         <= 'sd0;
+        filter2         <= 'sd1;
+        filter3         <= 'sd2;
         repeat (1) @(posedge clk);
         filter_enable1  <= 'b0;
         filter_enable2  <= 'b0;
         filter_enable3  <= 'b0;
         $display("Loading filter1 %5d %5d %5d", filter1, filter2, filter3);
-        #1 display_rf_mem;
-        display_control;
+        `ifdef DIAG
+            #1 display_rf_mem;
+            display_control;
+        `endif
         
         // Cycle 1 ifmap values
         ifmap_enable1   <= 'b1;     // ifmap 1 col 1,2,3
         ifmap_enable2   <= 'b1;
         ifmap_enable3   <= 'b1;
-        ifmap1          <= 'sd5;    
-        ifmap2          <= 'sd8;    
-        ifmap3          <= 'sd11;    
+        ifmap1          <= 'sd0;    
+        ifmap2          <= 'sd1;    
+        ifmap3          <= 'sd2;    
         repeat (1) @(posedge clk);
         ifmap_enable1   <= 'b0;
         ifmap_enable2   <= 'b0;
         ifmap_enable3   <= 'b0;
-        $display("Loading ifmap1 %5d %5d %5d", ifmap1, ifmap2, ifmap3);
-        #1 display_rf_mem;
-        display_control;
+        $display("Loading ifmap1  %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+        `ifdef DIAG
+            #1 display_rf_mem;
+            display_control;
+        `endif
        
         
         // Cycle 2 filter values
         filter_enable1  <= 'b1;    // filter 1 row 1,2,3
         filter_enable2  <= 'b1;
         filter_enable3  <= 'b1;
-        filter1         <= 'sd2;
-        filter2         <= 'sd5;
-        filter3         <= 'sd8;
+        filter1         <= 'sd1;
+        filter2         <= 'sd2;
+        filter3         <= 'sd3;
         repeat (1) @(posedge clk);
         filter_enable1  <= 'b0;
         filter_enable2  <= 'b0;
         filter_enable3  <= 'b0;
         $display("Loading filter1 %5d %5d %5d", filter1, filter2, filter3);
-        #1 display_rf_mem;
-        display_control;
+        `ifdef DIAG
+            #1 display_rf_mem;
+            display_control;
+        `endif
         
         // Cycle 2 ifmap values
         ifmap_enable1   <= 'b1;     // ifmap 1 row 1,2,3
         ifmap_enable2   <= 'b1;
         ifmap_enable3   <= 'b1;
-        ifmap1          <= 'sd6;    
-        ifmap2          <= 'sd9;    
-        ifmap3          <= 'sd12;    
+        ifmap1          <= 'sd1;    
+        ifmap2          <= 'sd2;    
+        ifmap3          <= 'sd3;    
         repeat (1) @(posedge clk);
         ifmap_enable1   <= 'b0;
         ifmap_enable2   <= 'b0;
         ifmap_enable3   <= 'b0;
-        $display("Loading ifmap1 %5d %5d %5d", ifmap1, ifmap2, ifmap3);
-        #1 display_rf_mem;
-        display_control;
+        $display("Loading ifmap1  %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+        `ifdef DIAG
+            #1 display_rf_mem;
+            display_control;
+        `endif
        
         
         // Cycle 3 filter values
         filter_enable1  <= 'b1;    // filter 1 col 1,2,3
         filter_enable2  <= 'b1;
         filter_enable3  <= 'b1;
-        filter1         <= 'sd3;
-        filter2         <= 'sd6;
-        filter3         <= 'sd9;
+        filter1         <= 'sd2;
+        filter2         <= 'sd3;
+        filter3         <= 'sd4;
         repeat (1) @(posedge clk);
         filter_enable1  <= 'b0;
         filter_enable2  <= 'b0;
         filter_enable3  <= 'b0;
         $display("Loading filter1 %5d %5d %5d", filter1, filter2, filter3);
-        #1 display_rf_mem;
-        display_control;
+        `ifdef DIAG
+            #1 display_rf_mem;
+            display_control;
+        `endif
         
         // Cycle 3 ifmap values
         ifmap_enable1   <= 'b1;     // ifmap 1 col 1,2,3
         ifmap_enable2   <= 'b1;
         ifmap_enable3   <= 'b1;
-        ifmap1          <= 'sd7;    
-        ifmap2          <= 'sd10;    
-        ifmap3          <= 'sd13;    
+        ifmap1          <= 'sd2;    
+        ifmap2          <= 'sd3;    
+        ifmap3          <= 'sd4;    
         repeat (1) @(posedge clk);
         ifmap_enable1   <= 'b0;
         ifmap_enable2   <= 'b0;
         ifmap_enable3   <= 'b0;
-        $display("Loading ifmap1 %5d %5d %5d", ifmap1, ifmap2, ifmap3);
-        #1 display_rf_mem;
-        display_control;
+        $display("Loading ifmap1  %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+        `ifdef DIAG
+            #1 display_rf_mem;
+            display_control;
+        `endif
 
 
         repeat(1) @(posedge clk);
 
         $display("PE Calculating MAC...\n");
         for (i = 0; i < 3; i = i + 1) begin
-            #1 display_control;
-            display_rf_mem;
-            display_mac;
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
             repeat(1) @(posedge clk);
         end
 
         $display("PE Accumulating Column...\n");
         for (i = 0; i < 2; i = i + 1) begin
             repeat(1) @(posedge clk);
-            #1 display_control;
-            display_rf_mem;
-            display_mac;
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
         end
 
-        $display("Output psum: %5d", output_psum1);
+        $display("Output psum: %5d\n\n\n\n", output_psum1);
+        repeat(1) @(posedge clk);
+        
+        //---------------------------------------------------------------------
+        //  Load filter and ifmap weights
+        //---------------------------------------------------------------------
+
+        // ifmap values
+        ifmap_enable1   <= 'b1;
+        ifmap_enable2   <= 'b1;
+        ifmap_enable3   <= 'b1;
+        ifmap1          <= 'sd3;    
+        ifmap2          <= 'sd4;    
+        ifmap3          <= 'sd5;    
+        repeat (1) @(posedge clk);
+        ifmap_enable1   <= 'b0;
+        ifmap_enable2   <= 'b0;
+        ifmap_enable3   <= 'b0;
+        $display("Loading ifmap  %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+       
+        repeat(1) @(posedge clk);
+
+        $display("PE Calculating MAC...");
+        for (i = 0; i < 3; i = i + 1) begin
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+            repeat(1) @(posedge clk);
+        end
+
+        $display("PE Accumulating Column...");
+        for (i = 0; i < 2; i = i + 1) begin
+            repeat(1) @(posedge clk);
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+        end
+
+        #1 $display("output_psum = %5d\n\n\n\n", output_psum1);
+        repeat (1) @(posedge clk);
+        
+        // ifmap values
+        ifmap_enable1   <= 'b1; 
+        ifmap_enable2   <= 'b1;
+        ifmap_enable3   <= 'b1;
+        ifmap1          <= 'sd4;    
+        ifmap2          <= 'sd5;    
+        ifmap3          <= 'sd6;    
+        repeat (1) @(posedge clk);
+        ifmap_enable1   <= 'b0;
+        ifmap_enable2   <= 'b0;
+        ifmap_enable3   <= 'b0;
+        $display("Loading ifmap  %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+       
+        repeat(1) @(posedge clk);
+
+        $display("PE Calculating MAC...");
+        for (i = 0; i < 3; i = i + 1) begin
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+            repeat(1) @(posedge clk);
+        end
+
+        $display("PE Accumulating Column...");
+        for (i = 0; i < 2; i = i + 1) begin
+            repeat(1) @(posedge clk);
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+        end
+
+        #1 $display("output_psum = %5d\n\n\n\n", output_psum1);
+        repeat (1) @(posedge clk);
+        
+        // ifmap values
+        ifmap_enable1   <= 'b1; 
+        ifmap_enable2   <= 'b1;
+        ifmap_enable3   <= 'b1;
+        ifmap1          <= 'sd5;    
+        ifmap2          <= 'sd6;    
+        ifmap3          <= 'sd7;    
+        repeat (1) @(posedge clk);
+        ifmap_enable1   <= 'b0;
+        ifmap_enable2   <= 'b0;
+        ifmap_enable3   <= 'b0;
+        $display("Loading ifmap  %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+       
+        repeat(1) @(posedge clk);
+
+        $display("PE Calculating MAC...");
+        for (i = 0; i < 3; i = i + 1) begin
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+            repeat(1) @(posedge clk);
+        end
+
+        $display("PE Accumulating Column...");
+        for (i = 0; i < 2; i = i + 1) begin
+            repeat(1) @(posedge clk);
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+        end
+
+        #1 $display("output_psum = %5d\n\n\n\n", output_psum1);
+        repeat (1) @(posedge clk);
+
+        // ifmap values
+        ifmap_enable1   <= 'b1; 
+        ifmap_enable2   <= 'b1;
+        ifmap_enable3   <= 'b1;
+        ifmap1          <= 'sd6;    
+        ifmap2          <= 'sd7;    
+        ifmap3          <= 'sd8;    
+        repeat (1) @(posedge clk);
+        ifmap_enable1   <= 'b0;
+        ifmap_enable2   <= 'b0;
+        ifmap_enable3   <= 'b0;
+        $display("Loading ifmap  %5d %5d %5d", ifmap1, ifmap2, ifmap3);
+       
+        repeat(1) @(posedge clk);
+
+        $display("PE Calculating MAC...");
+        for (i = 0; i < 3; i = i + 1) begin
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+            repeat(1) @(posedge clk);
+        end
+
+        $display("PE Accumulating Column...");
+        for (i = 0; i < 2; i = i + 1) begin
+            repeat(1) @(posedge clk);
+            //#1 display_control;
+            //display_rf_mem;
+            //display_mac;
+        end
+
+        #1 $display("output_psum = %5d\n\n\n\n", output_psum1);
+        repeat (1) @(posedge clk);
         $finish;
     end
 endmodule

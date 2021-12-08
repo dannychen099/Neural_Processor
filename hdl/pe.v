@@ -7,7 +7,8 @@ module pe
         parameter RF_DATA_DEPTH = 2**RF_ADDR_WIDTH,
         parameter   LOAD    = 0,
                     MAC     = 1,
-                    ACC     = 2
+                    ACC     = 2,
+                    NEXT_ROW= 3
     )
     (
         input   clk,            // Clock input
@@ -185,8 +186,29 @@ module pe
                         ready           <= 'b0;
                         pe_state        <= ACC;
                     end else begin
-                        count           <= 'b0;
-                        pe_state        <= LOAD;     // Go to LOAD state
+                        acc_input_psum  <= 'b0;
+                        acc_reset       <= 'b1;
+                        psum_select     <= 'b0;
+                        pe_state        <= NEXT_ROW;
+                    end
+                end
+                
+                NEXT_ROW: begin
+                    if (count < filter_size) begin
+                        count <= (filter_enable) ? count + 'b1 : count;
+                        acc_input_psum  <= 'b0;
+                        acc_reset       <= 'b0;
+                        filter_select   <= 'b0;
+                        ifmap_select    <= 'b0;
+                        psum_select     <= 'b0;
+                        psum_enable     <= 'b1;
+                        ready           <= 'b1;
+                        pe_state        <= NEXT_ROW;
+                    end else begin
+                        acc_input_psum  <= 'b0;
+                        acc_reset       <= 'b1;
+                        count           <= 'b1;     // Reset count
+                        pe_state        <= MAC;
                     end
                 end
                 default: begin
