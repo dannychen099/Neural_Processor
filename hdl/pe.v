@@ -175,7 +175,7 @@ module pe
                 end
 
                 ACC: begin
-                    if (count < filter_size) begin
+                    if (count < filter_size + 'd1) begin
                         count           <= count + 'b1;
                         acc_input_psum  <= 'b1;
                         acc_reset       <= 'b0;
