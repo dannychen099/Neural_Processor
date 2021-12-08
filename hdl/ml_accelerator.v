@@ -49,7 +49,7 @@ module ml_accelerator
     wire [NUM_PE-1:0]           pe_ready;
     wire [BITWIDTH*NUM_PE-1:0]  pe_psum;
         // Last PE_X_SIZE values on bottom are unused:
-    wire [BITWIDTH*(NUM_PE+PE_X_SIZE)-1:0] pe_bottom_psum;    
+    wire [BITWIDTH*(NUM_PE+PE_X_SIZE):0] pe_bottom_psum;    
     wire                        pe_reset_signal;
 
     assign ready = gin_ready_filter & gin_ready_ifmap;
@@ -125,14 +125,14 @@ module ml_accelerator
                     .ifmap          (pe_value_ifmap[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
                     .filter         (pe_value_filter[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
                     .input_psum     (pe_bottom_psum[((i+1)*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
-                    .ready          (pe_ready[i*PE_X_SIZE+j]),
+                    .ready          (pe_ready[i*PE_X_SIZE + j]),
                     .output_psum    (pe_bottom_psum[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH])
                 );
             end
         end
     endgenerate
     // Assign the psum inputs to the bottom row of PEs in the array to zero
-    assign pe_bottom_psum[BITWIDTH*(NUM_PE+PE_X_SIZE)-1 : BITWIDTH*NUM_PE] = 'b0;
+    assign pe_bottom_psum[BITWIDTH*(NUM_PE+PE_X_SIZE) : BITWIDTH*NUM_PE] = 'b0;
 
     // Assign the top psum outputs to the output ports for now
     generate
