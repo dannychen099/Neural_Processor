@@ -15,7 +15,7 @@ module fifo
         output signed [DATA_WIDTH-1:0]  value_out   // Value to read with reg_select
     );
 
-    reg [DATA_WIDTH-1:0] memory [0:DEPTH-1];
+    reg [DATA_WIDTH-1:0] memory [0:DEPTH];
 
     integer i;
 

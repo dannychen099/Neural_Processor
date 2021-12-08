@@ -1,11 +1,11 @@
 
-create_clock -name clk -period 1.0 -waveform { 0 0.5 } [get_ports clk]
+create_clock -name clk -period 10.0 -waveform { 0 0.5 } [get_ports clk]
 
 
 # ------------------------- Input constraints ----------------------------------
 
-set_input_delay -clock clk -max 0.2 [get_ports {rstb data_packet_ifmap data_packet_filter scanchain_input_ifmap scan_chain_input_filter program gin_enable_filter gin_enable_ifmap pe_reset}]
-set_input_delay -clock clk -min -0.2 [get_ports {rstb program scan_tag_in gin_enable data_packet pe_ready}]
+set_input_delay -clock clk -max 0.2 [get_ports {rstb data_packet_ifmap data_packet_filter scan_chain_input_ifmap scan_chain_input_filter program gin_enable_filter gin_enable_ifmap pe_reset}]
+set_input_delay -clock clk -min -0.2 [get_ports {rstb data_packet_ifmap data_packet_filter scan_chain_input_ifmap scan_chain_input_filter program gin_enable_filter gin_enable_ifmap pe_reset}]
 
 # ------------------------- Output constraints ---------------------------------
 
