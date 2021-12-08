@@ -90,7 +90,7 @@ module tb();
         program         <= 'b1;
         for (i = NUM_CONTROLLERS+2; i >= 0; i = i-1) begin
             scan_tag_in <= i;
-            repeat (1) @(posedge clk);
+            repeat (2) @(posedge clk);
         end
 
         $display("\n\nProgramming ended... Sending tagged data");

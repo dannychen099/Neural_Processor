@@ -2,45 +2,143 @@
 
 module ml_accelerator
     #(
-        parameter BITWIDTH          = 16;
-        
-        parameter SRAM_ADDR_LENGTH  = 8;    // External memory
-        parameter GLB_ADDR_LENGTH   = 8;    // Internal memory
-
-        parameter IFMAP_TAG_LENGTH  = 5;
-        parameter FILTER_TAG_LENGTH = 4;
-        parameter PSUM_TAG_LENGTH   = 4;
+        parameter BITWIDTH              = 16,
+        parameter PE_Y_SIZE             = 3,
+        parameter PE_X_SIZE             = 3,
+        parameter TAG_LENGTH            = 4,
+        parameter PACKET_LENGTH         = 2*TAG_LENGTH+BITWIDTH,
+        parameter NUM_PE                = PE_Y_SIZE*PE_X_SIZE
     )
     (
-        input   clk;
-        input   rstb;
+        input   clk,
+        input   rstb,
 
-        inout  [BITWIDTH-1:0]               sram_data;
-        output [SRAM_ADDR_LENGTH-1:0]       sram_addr;
-        output                              sram_cs;
-        output                              sram_we;
-        output                              sram_oe;
+        // Included for testing:
+        input  [PACKET_LENGTH-1:0]          data_packet_ifmap,
+        input  [PACKET_LENGTH-1:0]          data_packet_filter,
+        output [BITWIDTH*PE_X_SIZE-1:0]     ofmap,
+        input  [TAG_LENGTH-1:0]             scan_chain_input_ifmap,
+        input  [TAG_LENGTH-1:0]             scan_chain_input_filter,
+        output                              ready,
+        input                               program,
+        input                               gin_enable_filter,
+        input                               gin_enable_ifmap,
+        input                               pe_reset
+
     );
 
-    reg [GLB_ADDR_LENGTH-1:0]   glb_addr;
-    reg [BITWIDTH-1:0]          glb_data;
-    reg                         glb_cs;
-    reg                         glb_we;
-    reg                         glb_oe;
+    genvar i;
+    genvar j;
 
-    // Internal buffer
-    single_port_sram
+    // Ifmap connections
+    wire [TAG_LENGTH-1:0]       scan_chain_output_ifmap;
+    wire                        gin_ready_ifmap;
+    wire [NUM_PE-1:0]           pe_enable_ifmap;
+    wire [NUM_PE-1:0]           pe_ready_ifmap;
+    wire [BITWIDTH*NUM_PE-1:0]  pe_value_ifmap;
+
+    // Filter connections
+    wire [TAG_LENGTH-1:0]       scan_chain_output_filter;
+    wire                        gin_ready_filter;
+    wire [NUM_PE-1:0]           pe_enable_filter;
+    wire [NUM_PE-1:0]           pe_ready_filter;
+    wire [BITWIDTH*NUM_PE-1:0]  pe_value_filter;
+    
+    // PE connections
+    wire [NUM_PE-1:0]           pe_enable;
+    wire [NUM_PE-1:0]           pe_ready;
+    wire [BITWIDTH*NUM_PE-1:0]  pe_psum;
+        // Last PE_X_SIZE values on bottom are unused:
+    wire [BITWIDTH*(NUM_PE+PE_X_SIZE)-1:0] pe_bottom_psum;    
+    wire                        pe_reset_signal;
+
+    assign ready = gin_ready_filter & gin_ready_ifmap;
+    assign pe_reset_signal = rstb & pe_reset; // Active low
+    
+    //-------------------------------------------------------------------------
+    //  Ifmap GIN
+    //-------------------------------------------------------------------------
+    gin
     #(
-        .ADDR_WIDTH (SRAM_ADDR_LENGTH),
-        .DATA_WIDTH (BITWIDTH),
-        .DEPTH      (2**SRAM_ADDR_LENGTH)
+        .BITWIDTH           (BITWIDTH),
+        .TAG_LENGTH         (TAG_LENGTH),
+        .Y_BUS_SIZE         (PE_Y_SIZE),
+        .X_BUS_SIZE         (PE_X_SIZE)
     )
-    glb(
-        .clk    (clk),
-        .addr   (glb_addr),
-        .data   (glb_data),
-        .cs     (glb_cs),
-        .we     (glb_we),
-        .oe     (glb_oe)
+    gin_ifmap
+    (
+        .clk                (clk),
+        .rstb               (rstb),
+        .program            (program),
+        .scan_tag_in        (scan_chain_input_ifmap),
+        .scan_tag_out       (scan_chain_output_ifmap),
+        .gin_enable         (gin_enable_ifmap),
+        .gin_ready          (gin_ready_ifmap),
+        .data_packet        (data_packet_ifmap),
+        .pe_enable          (pe_enable_ifmap),
+        .pe_ready           (pe_ready),
+        .pe_value           (pe_value_ifmap)
     );
+    
+    //-------------------------------------------------------------------------
+    //  Filter GIN
+    //-------------------------------------------------------------------------
+    gin
+    #(
+        .BITWIDTH           (BITWIDTH),
+        .TAG_LENGTH         (TAG_LENGTH),
+        .Y_BUS_SIZE         (PE_Y_SIZE),
+        .X_BUS_SIZE         (PE_X_SIZE)
+    )
+    gin_filter
+    (
+        .clk                (clk),
+        .rstb               (rstb),
+        .program            (program),
+        .scan_tag_in        (scan_chain_input_filter),
+        .scan_tag_out       (scan_chain_output_filter),
+        .gin_enable         (gin_enable_filter),
+        .gin_ready          (gin_ready_filter),
+        .data_packet        (data_packet_filter),
+        .pe_enable          (pe_enable_filter),
+        .pe_ready           (pe_ready),
+        .pe_value           (pe_value_filter)
+    );
+
+    //-------------------------------------------------------------------------
+    //  PE array
+    //-------------------------------------------------------------------------
+    generate
+        for (i = 0; i < PE_Y_SIZE; i = i + 1) begin : pe_row
+            for (j = 0; j < PE_X_SIZE; j = j + 1) begin : pe_col
+
+                pe
+                #(
+                    .BITWIDTH       (BITWIDTH)
+                )
+                pe_unit
+                (
+                    .clk            (clk),
+                    .rstb           (pe_reset),
+                    .ifmap_enable   (pe_enable_ifmap[i*PE_X_SIZE+j]),
+                    .filter_enable  (pe_enable_filter[i*PE_X_SIZE+j]),
+                    .ifmap          (pe_value_ifmap[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
+                    .filter         (pe_value_filter[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
+                    .input_psum     (pe_bottom_psum[((i+1)*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
+                    .ready          (pe_ready[i*PE_X_SIZE+j]),
+                    .output_psum    (pe_bottom_psum[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH])
+                );
+            end
+        end
+    endgenerate
+    // Assign the psum inputs to the bottom row of PEs in the array to zero
+    assign pe_bottom_psum[BITWIDTH*(NUM_PE+PE_X_SIZE)-1 : BITWIDTH*NUM_PE] = 'b0;
+
+    // Assign the top psum outputs to the output ports for now
+    generate
+        for (i = 0; i < PE_X_SIZE; i = i + 1) begin
+            assign ofmap[i*BITWIDTH +: BITWIDTH] = pe_bottom_psum[i*BITWIDTH +: BITWIDTH];
+        end
+    endgenerate
+
 endmodule
