@@ -2,8 +2,6 @@
 
 module tb;
     parameter BITWIDTH          = 16;
-    parameter SRAM_ADDR_LENGTH  = 3;
-    parameter GLB_ADDR_LENGTH   = 3;
     parameter PE_Y_SIZE         = 3;
     parameter PE_X_SIZE         = 3;
     parameter TAG_LENGTH        = 4;
@@ -25,9 +23,7 @@ module tb;
     wire signed [BITWIDTH*PE_X_SIZE-1:0]    ofmap;
 
     reg  [TAG_LENGTH-1:0]             scan_chain_input_ifmap;
-    wire [TAG_LENGTH-1:0]             scan_chain_output_ifmap;
     reg  [TAG_LENGTH-1:0]             scan_chain_input_filter;
-    wire [TAG_LENGTH-1:0]             scan_chain_output_filter;
 
     reg                     program;
     reg                     gin_enable_ifmap;
@@ -85,8 +81,6 @@ module tb;
     ml_accelerator
     #(
         .BITWIDTH           (BITWIDTH),
-        .SRAM_ADDR_LENGTH   (SRAM_ADDR_LENGTH),
-        .GLB_ADDR_LENGTH    (GLB_ADDR_LENGTH),
         .PE_Y_SIZE          (PE_Y_SIZE),
         .PE_X_SIZE          (PE_X_SIZE),
         .TAG_LENGTH         (TAG_LENGTH)
@@ -99,9 +93,7 @@ module tb;
         .data_packet_filter (data_packet_filter),
         .ofmap              (ofmap),
         .scan_chain_input_ifmap(scan_chain_input_ifmap),
-        .scan_chain_output_ifmap(scan_chain_output_ifmap),
         .scan_chain_input_filter(scan_chain_input_filter),
-        .scan_chain_output_filter(scan_chain_output_filter),
         .gin_enable_ifmap             (gin_enable_ifmap),
         .gin_enable_filter            (gin_enable_filter),
         .ready              (ready),
@@ -495,21 +487,23 @@ module tb;
         repeat(3) @(posedge clk) pe_diag;
 
         // Display the 1st row results
-        $display("ofmap: %5d %5d %5d",
-            tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
-            tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
-            tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
+        $display("ofmap %5d %5d %5d",
+            ofmap[0 +: BITWIDTH],
+            ofmap[BITWIDTH +: BITWIDTH],
+            ofmap[2*BITWIDTH +: BITWIDTH]
+        );
 
         // The 2nd and 3rd ofmap columns were delayed by 1 clock cycle during
         // programming, so we need 2 more clock cycles to finish the ofmap
         // row. Note that more than 2 clock cycles will mess with things
-        repeat(2) @(posedge clk) begin
-            pe_diag;
-            $display("ofmap: %5d %5d %5d",
-                tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
-                tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
-                tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
-        end
+        repeat(2) @(posedge clk)
+        pe_diag;
+
+        $display("--- FINAL OUTPUT --- ofmap %5d %5d %5d",
+            ofmap[0 +: BITWIDTH],
+            ofmap[BITWIDTH +: BITWIDTH],
+            ofmap[2*BITWIDTH +: BITWIDTH]
+        );
 
         pe_reset    <= 'b0;
         repeat(1) @(posedge clk);
@@ -700,15 +694,18 @@ module tb;
             tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
             tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
 
-        repeat(2) @(posedge clk) begin
-            pe_diag;
-            $display("ofmap: %5d %5d %5d",
-                tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
-                tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
-                tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
-        end
+        repeat(2) @(posedge clk)
+        pe_diag;
+        $display("ofmap: %5d %5d %5d",
+            tb_dut.pe_row[0].pe_col[0].pe_unit.output_psum,
+            tb_dut.pe_row[0].pe_col[1].pe_unit.output_psum,
+            tb_dut.pe_row[0].pe_col[2].pe_unit.output_psum);
 
-
+        $display("--- FINAL OUTPUT --- ofmap %5d %5d %5d",
+            ofmap[0 +: BITWIDTH],
+            ofmap[BITWIDTH +: BITWIDTH],
+            ofmap[2*BITWIDTH +: BITWIDTH]
+        );
         $finish;
     end
 
