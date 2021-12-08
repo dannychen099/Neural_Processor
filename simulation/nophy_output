@@ -1,0 +1,64 @@
+xrun(64): 18.09-s011: (c) Copyright 1995-2019 Cadence Design Systems, Inc.
+Loading snapshot worklib.tb:v .................... Done
+xcelium> source /vol/cadence2018/XCELIUM1809/tools/xcelium/files/xmsimrc
+xcelium> run
+ofmap:	    0     0     0
+filter= 0, ifmap= 0
+ofmap:	    0     1     0
+filter= 1, ifmap= 1
+ofmap:	    0     2     4
+filter= 2, ifmap= 2
+filter= z, ifmap= 3
+filter= z, ifmap= 4
+ofmap:	    2     2     4
+filter= 2, ifmap= 2
+ofmap:	    2     4     4
+ofmap:	    2     4     6
+ofmap:	    4     4     6
+ofmap:	    4     6     6
+--- NOTE ---
+Change state on next cycle
+
+ofmap:	    5     6     8
+ofmap:	    5     8     8
+ofmap:	    5     8    11
+ofmap:	   19     8    11
+ofmap    19     8    11
+ofmap:	   48    28    11
+ofmap:	   48    66    37
+ofmap:	   48    66    84
+--- FINAL OUTPUT ---
+ofmap    48    66    84
+
+ofmap:	    0     0     0
+filter= 0, ifmap= 1
+ofmap:	    1     2     0
+filter= 1, ifmap= 2
+ofmap:	    2     4     6
+filter= 2, ifmap= 3
+filter= z, ifmap= 4
+filter= z, ifmap= 5
+ofmap:	    4     4     6
+filter= 2, ifmap= 3
+ofmap:	    4     6     6
+ofmap:	    4     6     8
+ofmap:	    6     6     8
+ofmap:	    6     8     8
+--- NOTE ---
+Change state on next cycle
+
+ofmap:	    8     8    10
+ofmap:	    8    11    10
+ofmap:	    8    11    14
+ofmap:	   28    11    14
+ofmap    28    11    14
+ofmap:	   66    37    14
+ofmap:	   66    84    46
+ofmap:	   66    84   102
+--- FINAL OUTPUT ---
+ofmap    66    84   102
+
+
+Simulation complete via $finish(1) at time 1410 NS + 0
+../test/tb_syn_ml_accelerator.v:490         $finish;
+xcelium> exit
