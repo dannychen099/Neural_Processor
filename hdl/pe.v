@@ -135,7 +135,7 @@ module pe
             acc_reset           <= 'b1;
             filter_size         <= 'd3; // 'Size' of filter to cycle through
             count               <= 'b0;
-            pe_state            <= 'b0;
+            pe_state            <= LOAD;
         end else begin
 
             case (pe_state)

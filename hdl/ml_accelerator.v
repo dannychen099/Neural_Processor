@@ -5,8 +5,8 @@ module ml_accelerator
         parameter BITWIDTH              = 16,
         parameter SRAM_ADDR_LENGTH      = 3,    // External memory
         parameter GLB_ADDR_LENGTH       = 3,    // Internal memory
-        parameter PE_Y_SIZE             = 4,
-        parameter PE_X_SIZE             = 4,
+        parameter PE_Y_SIZE             = 3,
+        parameter PE_X_SIZE             = 3,
         parameter TAG_LENGTH            = 4,
         parameter PACKET_LENGTH         = 2*TAG_LENGTH+BITWIDTH,
         parameter NUM_PE                = PE_Y_SIZE*PE_X_SIZE
@@ -15,24 +15,40 @@ module ml_accelerator
         input   clk,
         input   rstb,
 
+/* Left out for simpler design
         inout  [BITWIDTH-1:0]               sram_data,
         output [SRAM_ADDR_LENGTH-1:0]       sram_addr,
         output                              sram_cs,
         output                              sram_we,
-        output                              sram_oe
+        output                              sram_oe,
+*/
+        
+        // Included for testing:
+        input  [PACKET_LENGTH-1:0]          data_packet_ifmap,
+        input  [PACKET_LENGTH-1:0]          data_packet_filter,
+        output [BITWIDTH*PE_X_SIZE-1:0]     ofmap,
+        input  [TAG_LENGTH-1:0]             scan_chain_input_ifmap,
+        input  [TAG_LENGTH-1:0]             scan_chain_output_ifmap,
+        input  [TAG_LENGTH-1:0]             scan_chain_input_filter,
+        input  [TAG_LENGTH-1:0]             scan_chain_output_filter,
+        input                               enable,
+        output                              ready,
+        input                               program
     );
 
     genvar i;
     genvar j;
 
     // Control connections
-    
+    //reg                         program;
+   
+
     // Ifmap connections
-    wire [TAG_LENGTH-1:0]       scan_chain_input_ifmap;
-    wire [TAG_LENGTH-1:0]       scan_chain_output_ifmap;
-    reg                         gin_enable_ifmap;
+    //wire [TAG_LENGTH-1:0]       scan_chain_input_ifmap;
+    //wire [TAG_LENGTH-1:0]       scan_chain_output_ifmap;
+    wire                        gin_enable_ifmap;
     wire                        gin_ready_ifmap;
-    wire [PACKET_LENGTH-1:0]    data_packet_ifmap;
+    //wire [PACKET_LENGTH-1:0]    data_packet_ifmap; // Used as input for now
     wire [NUM_PE-1:0]           pe_enable_ifmap;
     wire [NUM_PE-1:0]           pe_ready_ifmap;
     wire [BITWIDTH*NUM_PE-1:0]  pe_value_ifmap;
@@ -45,11 +61,11 @@ module ml_accelerator
 
 
     // Filter connections
-    wire [TAG_LENGTH-1:0]       scan_chain_input_filter;
-    wire [TAG_LENGTH-1:0]       scan_chain_output_filter;
-    reg                         gin_enable_filter;
+    //wire [TAG_LENGTH-1:0]       scan_chain_input_filter;
+    //wire [TAG_LENGTH-1:0]       scan_chain_output_filter;
+    wire                        gin_enable_filter;
     wire                        gin_ready_filter;
-    wire [PACKET_LENGTH-1:0]    data_packet_filter;
+    //wire [PACKET_LENGTH-1:0]    data_packet_filter; // Used as input for now
     wire [NUM_PE-1:0]           pe_enable_filter;
     wire [NUM_PE-1:0]           pe_ready_filter;
     wire [BITWIDTH*NUM_PE-1:0]  pe_value_filter;
@@ -64,13 +80,15 @@ module ml_accelerator
     // PE connections
     wire [NUM_PE-1:0]           pe_enable;
     wire [NUM_PE-1:0]           pe_ready;
-    wire [BITWIDTH-1:0]         pe_psum                 [0:NUM_PE-1];
-    wire [2:0]                  pe_control              [0:NUM_PE-1];
-    wire [BITWIDTH-1:0]         pe_value_psum           [0:NUM_PE+PE_X_SIZE]; // Last PE_X_SIZE values are unused
-    
-    assign pe_enable = pe_enable_ifmap | pe_enable_filter;
-    assign pe_ready = pe_ready_ifmap & pe_ready_filter;
+    wire [BITWIDTH*NUM_PE-1:0]  pe_psum;
+        // Last PE_X_SIZE values on bottom are unused:
+    wire [BITWIDTH*(NUM_PE+PE_X_SIZE)-1:0] pe_bottom_psum;    
 
+
+    assign ready = gin_ready_filter & gin_ready_ifmap;
+    assign gin_enable_ifmap = enable;
+    assign gin_enable_filter = enable;
+    
     //-------------------------------------------------------------------------
     //  Ifmap GLB register and GIN
     //-------------------------------------------------------------------------
@@ -100,13 +118,14 @@ module ml_accelerator
     (
         .clk                (clk),
         .rstb               (rstb),
+        .program            (program),
         .scan_tag_in        (scan_chain_input_ifmap),
         .scan_tag_out       (scan_chain_output_ifmap),
         .gin_enable         (gin_enable_ifmap),
         .gin_ready          (gin_ready_ifmap),
         .data_packet        (data_packet_ifmap),
         .pe_enable          (pe_enable_ifmap),
-        .pe_ready           (pe_ready_ifmap),
+        .pe_ready           (pe_ready),
         .pe_value           (pe_value_ifmap)
     );
     
@@ -139,13 +158,14 @@ module ml_accelerator
     (
         .clk                (clk),
         .rstb               (rstb),
+        .program            (program),
         .scan_tag_in        (scan_chain_input_filter),
         .scan_tag_out       (scan_chain_output_filter),
         .gin_enable         (gin_enable_filter),
         .gin_ready          (gin_ready_filter),
         .data_packet        (data_packet_filter),
         .pe_enable          (pe_enable_filter),
-        .pe_ready           (pe_ready_filter),
+        .pe_ready           (pe_ready),
         .pe_value           (pe_value_filter)
     );
 
@@ -160,18 +180,29 @@ module ml_accelerator
                 #(
                     .BITWIDTH       (BITWIDTH)
                 )
-                pe_array
+                pe_unit
                 (
-                    .clk        (clk),
-                    .rstb       (rstb),
-                    .enable     (pe_enable[i*PE_X_SIZE+j]),
-                    .control    (pe_control[i*PE_X_SIZE+j]),
-                    .ifmap      (pe_value_ifmap[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
-                    .filter     (pe_value_filter[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
-                    .input_psum (pe_value_psum[i*PE_X_SIZE + j]),
-                    .output_psum(pe_value_psum[(i+1)*PE_X_SIZE + j])
+                    .clk            (clk),
+                    .rstb           (rstb),
+                    .ifmap_enable   (pe_enable_ifmap[i*PE_X_SIZE+j]),
+                    .filter_enable  (pe_enable_filter[i*PE_X_SIZE+j]),
+                    .ifmap          (pe_value_ifmap[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
+                    .filter         (pe_value_filter[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
+                    .input_psum     (pe_bottom_psum[(i*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH]),
+                    .ready          (pe_ready[i]),
+                    .output_psum    (pe_bottom_psum[((i+1)*PE_X_SIZE + j)*BITWIDTH +: BITWIDTH])
                 );
             end
         end
     endgenerate
+    // Assign the psum inputs to the bottom row of PEs in the array to zero
+    assign pe_bottom_psum[BITWIDTH*(NUM_PE+PE_X_SIZE)-1 : BITWIDTH*NUM_PE] = 'b0;
+
+    // Assign the top psum outputs to the output ports for now
+    generate
+        for (i = 0; i < PE_X_SIZE; i = i + 1) begin
+            assign ofmap[i*BITWIDTH +: BITWIDTH] = pe_bottom_psum[i*PE_X_SIZE*BITWIDTH +: BITWIDTH];
+        end
+    endgenerate
+
 endmodule

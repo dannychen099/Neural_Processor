@@ -15,8 +15,7 @@
 //                  X X X X X X X
 //
 //  Note that this simulation only calculates the *first row*.
-//-----------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------- 
 module tb;
     parameter BITWIDTH      = 16;
     parameter RF_ADDR_WIDTH = 3;
