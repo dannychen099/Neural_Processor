@@ -10,3 +10,4 @@ syn_opt
 report_timing > timing.rpt
 report_area > area.rpt
 write_hdl > ../hdl/syn_ml_accelerator.v
+quit

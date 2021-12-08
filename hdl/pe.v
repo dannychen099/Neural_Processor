@@ -168,7 +168,7 @@ module pe
                         ready           <= 'b0;
                         pe_state        <= MAC;
                     end else begin
-                        acc_input_psum  <= 'b1;
+                        acc_input_psum  <= 'b0;     // was 1, but 0 allows synthesis to work?
                         count           <= 'b0;     // Reset count
                         pe_state        <= ACC;     // Go to LOAD state
                     end

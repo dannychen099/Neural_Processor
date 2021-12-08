@@ -31,14 +31,14 @@ module gin
     wire [(X_PACKET_LENGTH*Y_BUS_SIZE)-1:0] y_bus_output;
 
     // X-bus internal connections (multiple x-buses)
-    wire [TAG_LENGTH-1:0]               col_id          [0:Y_BUS_SIZE-1];
-    wire [X_PACKET_LENGTH-1:0]          x_data_packet   [0:Y_BUS_SIZE-1];
-    wire [(BITWIDTH*X_BUS_SIZE)-1:0]    x_bus_output    [0:Y_BUS_SIZE-1];
-    wire [BITWIDTH-1:0]                 x_value_to_pass [0:Y_BUS_SIZE-1];
+    wire [TAG_LENGTH-1:0]               col_id          [0:Y_BUS_SIZE];
+    wire [X_PACKET_LENGTH-1:0]          x_data_packet   [0:Y_BUS_SIZE];
+    wire [(BITWIDTH*X_BUS_SIZE)-1:0]    x_bus_output    [0:Y_BUS_SIZE];
+    wire [BITWIDTH-1:0]                 x_value_to_pass [0:Y_BUS_SIZE];
     wire [Y_BUS_SIZE-1:0]               x_bus_enable;
     wire [Y_BUS_SIZE-1:0]               x_bus_ready; 
-    wire [X_BUS_SIZE-1:0]               x_bus_pe_enable [0:Y_BUS_SIZE-1];
-    wire [X_BUS_SIZE-1:0]               x_bus_pe_ready  [0:Y_BUS_SIZE-1];
+    wire [X_BUS_SIZE-1:0]               x_bus_pe_enable [0:Y_BUS_SIZE];
+    wire [X_BUS_SIZE-1:0]               x_bus_pe_ready  [0:Y_BUS_SIZE];
 
     wire [TAG_LENGTH-1:0]               bus_scan_tag_out[0:Y_BUS_SIZE];
     assign scan_tag_out = bus_scan_tag_out[Y_BUS_SIZE];
@@ -49,7 +49,7 @@ module gin
     assign y_value_to_pass = data_packet[X_PACKET_LENGTH-1:0];
 
     // Y-bus multicast controller state/enable
-    assign gin_ready = &x_bus_ready;
+    //assign gin_ready = &x_bus_ready;
 
     gin_bus
     #(
