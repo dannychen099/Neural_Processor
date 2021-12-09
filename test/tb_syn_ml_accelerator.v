@@ -117,7 +117,7 @@ module tb;
     always #(CLK_PERIOD) clk = ~clk;
 
     initial begin
-        $monitor("ofmap:\t%5d %5d %5d", ofmap[0 +: BITWIDTH], ofmap[BITWIDTH +: BITWIDTH], ofmap[2*BITWIDTH +: BITWIDTH]);
+        //$monitor("ofmap:\t%5d %5d %5d", ofmap[0 +: BITWIDTH], ofmap[BITWIDTH +: BITWIDTH], ofmap[2*BITWIDTH +: BITWIDTH]);
 
         clk         <= 'b0;
         rstb        <= 'b0;
@@ -171,7 +171,6 @@ module tb;
         ifmap_col   <= 'd0;
         ifmap       <= 'sd0;
         repeat (1) @(posedge clk);
-        #1 display_input(filter, ifmap);
 
         filter_row  <= 'd0;     // f21, f22, f23
         filter_col  <= 'd0;
@@ -181,7 +180,6 @@ module tb;
         ifmap_col   <= 'd1;
         ifmap       <= 'sd1;
         repeat (1) @(posedge clk);
-        #1 display_input(filter, ifmap);
 
         filter_row  <= 'd0;     // f31, f32, f33
         filter_col  <= 'd0;
@@ -191,21 +189,18 @@ module tb;
         ifmap_col   <= 'd2;
         ifmap       <= 'sd2;
         repeat (1) @(posedge clk);
-        #1 display_input(filter, ifmap);
         gin_enable_filter <= 'b0;
         
         ifmap_row   <= 'd0;     // if32, if23
         ifmap_col   <= 'd3;
         ifmap       <= 'sd3;
         repeat (1) @(posedge clk);
-        display_input('bz, ifmap);
         
         ifmap_row   <= 'd0;     // if33
         ifmap_col   <= 'd4;
         ifmap       <= 'sd4;
         repeat (1) @(posedge clk);
         gin_enable_ifmap    <= 'b0;
-        display_input('bz, ifmap);
 
 
         //---------------------------------------------------------------------
@@ -239,7 +234,6 @@ module tb;
         ifmap_row   <= 'd0;     // if31, if22, if13
         ifmap_col   <= 'd2;
         ifmap       <= 'sd3;
-        display_input(filter, ifmap);
         repeat (1) @(posedge clk);
         gin_enable_filter <= 'b0;
         
@@ -289,7 +283,6 @@ module tb;
         repeat (1) @(posedge clk);
         gin_enable_filter <= 'b0;
         
-        $display("--- NOTE ---\nChange state on next cycle\n");
         ifmap_row   <= 'd0;     // if32, if23
         ifmap_col   <= 'd3;
         ifmap       <= 'sd5;
@@ -303,13 +296,6 @@ module tb;
 
         // Takes 3 clock cycles to calculate a single row
         repeat(3) @(posedge clk);
-
-        // Display the 1st row results
-        $display("ofmap %5d %5d %5d",
-            ofmap[0 +: BITWIDTH],
-            ofmap[BITWIDTH +: BITWIDTH],
-            ofmap[2*BITWIDTH +: BITWIDTH]
-        );
 
         // The 2nd and 3rd ofmap columns were delayed by 1 clock cycle during
         // programming, so we need 2 more clock cycles to finish the ofmap
@@ -341,7 +327,6 @@ module tb;
         ifmap_col   <= 'd0;
         ifmap       <= 'sd1;
         repeat (1) @(posedge clk);
-        #1 display_input(filter, ifmap);
 
         filter_row  <= 'd0;     // f21, f22, f23
         filter_col  <= 'd0;
@@ -351,7 +336,6 @@ module tb;
         ifmap_col   <= 'd1;
         ifmap       <= 'sd2;
         repeat (1) @(posedge clk);
-        #1 display_input(filter, ifmap);
 
         filter_row  <= 'd0;     // f31, f32, f33
         filter_col  <= 'd0;
@@ -361,21 +345,18 @@ module tb;
         ifmap_col   <= 'd2;
         ifmap       <= 'sd3;
         repeat (1) @(posedge clk);
-        #1 display_input(filter, ifmap);
         gin_enable_filter <= 'b0;
         
         ifmap_row   <= 'd0;     // if32, if23
         ifmap_col   <= 'd3;
         ifmap       <= 'sd4;
         repeat (1) @(posedge clk);
-        display_input('bz, ifmap);
         
         ifmap_row   <= 'd0;     // if33
         ifmap_col   <= 'd4;
         ifmap       <= 'sd5;
         repeat (1) @(posedge clk);
         gin_enable_ifmap    <= 'b0;
-        display_input('bz, ifmap);
 
 
         //---------------------------------------------------------------------
@@ -409,7 +390,6 @@ module tb;
         ifmap_row   <= 'd0;     // if31, if22, if13
         ifmap_col   <= 'd2;
         ifmap       <= 'sd4;
-        display_input(filter, ifmap);
         repeat (1) @(posedge clk);
         gin_enable_filter <= 'b0;
         
@@ -459,7 +439,6 @@ module tb;
         repeat (1) @(posedge clk);
         gin_enable_filter <= 'b0;
         
-        $display("--- NOTE ---\nChange state on next cycle\n");
         ifmap_row   <= 'd0;     // if32, if23
         ifmap_col   <= 'd3;
         ifmap       <= 'sd6;
@@ -474,12 +453,161 @@ module tb;
         // Takes 3 clock cycles to calculate a single row
         repeat(3) @(posedge clk);
 
-        // Display the 1st row results
-        $display("ofmap %5d %5d %5d",
+        repeat(3) @(posedge clk);
+
+        $display("--- FINAL OUTPUT ---\nofmap %5d %5d %5d\n\n",
             ofmap[0 +: BITWIDTH],
             ofmap[BITWIDTH +: BITWIDTH],
             ofmap[2*BITWIDTH +: BITWIDTH]
         );
+        
+        
+        pe_reset    <= 'b0;
+        repeat(1) @(posedge clk);
+        pe_reset    <= 'b1;
+        repeat(1) @(posedge clk);
+
+        //---------------------------------------------------------------------
+        //  Load 1st cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter      <= 'b1;
+        gin_enable_ifmap      <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd0;
+        filter      <= 'sd0;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd2;
+        repeat (1) @(posedge clk);
+
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd0;
+        filter      <= 'sd1;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd3;
+        repeat (1) @(posedge clk);
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd0;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+        gin_enable_filter <= 'b0;
+        
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd5;
+        repeat (1) @(posedge clk);
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd6;
+        repeat (1) @(posedge clk);
+        gin_enable_ifmap    <= 'b0;
+
+
+        //---------------------------------------------------------------------
+        //  Load 2nd cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter      <= 'b1;
+        gin_enable_ifmap      <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd1;
+        filter      <= 'sd1;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd3;
+        repeat (1) @(posedge clk);
+        
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd1;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd1;
+        filter      <= 'sd3;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd5;
+        display_input(filter, ifmap);
+        repeat (1) @(posedge clk);
+        gin_enable_filter <= 'b0;
+        
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd6;
+        repeat (1) @(posedge clk);
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd7;
+        repeat (1) @(posedge clk);
+        gin_enable_ifmap    <= 'b0;
+
+        
+        //---------------------------------------------------------------------
+        //  Load 3rd cycle
+        //---------------------------------------------------------------------
+        gin_enable_filter   <= 'b1;
+        gin_enable_ifmap     <= 'b1;
+        
+        filter_row  <= 'd0;     // f11, f12, f13
+        filter_col  <= 'd2;
+        filter      <= 'sd2;
+        
+        ifmap_row   <= 'd0;     // if11
+        ifmap_col   <= 'd0;
+        ifmap       <= 'sd4;
+        repeat (1) @(posedge clk);
+        
+        filter_row  <= 'd0;     // f21, f22, f23
+        filter_col  <= 'd2;
+        filter      <= 'sd3;
+        
+        ifmap_row   <= 'd0;     // if12, if21
+        ifmap_col   <= 'd1;
+        ifmap       <= 'sd5;
+        repeat (1) @(posedge clk);
+
+        filter_row  <= 'd0;     // f31, f32, f33
+        filter_col  <= 'd2;
+        filter      <= 'sd4;
+        
+        ifmap_row   <= 'd0;     // if31, if22, if13
+        ifmap_col   <= 'd2;
+        ifmap       <= 'sd6;
+        repeat (1) @(posedge clk);
+        gin_enable_filter <= 'b0;
+        
+        ifmap_row   <= 'd0;     // if32, if23
+        ifmap_col   <= 'd3;
+        ifmap       <= 'sd7;
+        repeat (1) @(posedge clk);
+        
+        ifmap_row   <= 'd0;     // if33
+        ifmap_col   <= 'd4;
+        ifmap       <= 'sd8;
+        repeat (1) @(posedge clk);
+        gin_enable_ifmap    <= 'b0;
+
+        // Takes 3 clock cycles to calculate a single row
+        repeat(3) @(posedge clk);
+
         repeat(3) @(posedge clk);
 
         $display("--- FINAL OUTPUT ---\nofmap %5d %5d %5d\n\n",
